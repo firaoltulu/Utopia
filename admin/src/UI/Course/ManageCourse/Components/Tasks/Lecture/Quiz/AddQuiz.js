@@ -20,7 +20,7 @@ import { AddNewCurriculumModuleQuestionItem } from '../../../../../../../Hooks/r
 
 export default function AddQuiz(props) {
 
-    const { CourseID, CurriculumID, ModuleID, LectureID, QuestionID, reload, setreload, } = props;
+    const { CourseID, CurriculumID, ModuleID, LectureID, QuestionID, reload, setreload, setCurriculum } = props;
 
     const [addQuiz, setaddQuiz] = React.useState(false);
     const [Question, setQuestion] = React.useState("");
@@ -54,7 +54,6 @@ export default function AddQuiz(props) {
 
     }, [Answersreload]);
 
-    console.log({ Answers });
 
     const HandleAddQuiz = (event, which) => {
         if (which === 0) {
@@ -243,11 +242,14 @@ export default function AddQuiz(props) {
                     const response = await AddNewCurriculumModuleQuestionItem(newobj);
 
                     if (response.done) {
-                        setreload(!reload);
+                        if (reload !== null) {
+                            setreload(!reload);
+                        }
                         setQuestion("");
                         setAnswersreload(!Answersreload);
                         setQuestionAddSucesssnackbaropen(true);
                         setaddQuiz(false);
+                        setCurriculum(response.Curriculum);
                     }
                     else {
                         setQuestionAddErrorSnackbaropen(true);

@@ -13,12 +13,12 @@ import * as React from 'react';
 import {
     HttpEditCurriculumModuleLectureItem,
     HttpEditCurriculumModuleQuestionItem
-} from '../../../../../../Hooks/request';
+} from '../../../../../../../Hooks/request';
 
 export default function EditLecture(props) {
 
     const { item, ModuleID, reload, CourseID,
-        CurriculumID, setreload, HandleClose } = props;
+        CurriculumID, setCurriculum, setreload, HandleClose } = props;
 
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -100,19 +100,21 @@ export default function EditLecture(props) {
                             LectureID: item.LectureID,
 
                         });
+
                         const response = await HttpEditCurriculumModuleLectureItem(newobj);
                         if (response.done) {
-
-                            setreload(!reload);
-                            EditLectureDialogclose();
+                            setCurriculum(response.Curriculum);
+                            // setreload(!reload);
+                            // EditLectureDialogclose();
                             setsnackbaropen(true);
-
                         }
                         else {
                             seterrorsnackbaropen(true);
                         }
+
                     }
                     else if (item.Type === "quiz") {
+
                         const newobj = Object.assign({}, {
                             Title: EditLectureTitle,
                             Discription: EditLectureDiscription,
@@ -123,31 +125,38 @@ export default function EditLecture(props) {
 
                         });
 
-                        console.log({ newobj });
                         const response = await HttpEditCurriculumModuleQuestionItem(newobj);
                         if (response.done) {
-
+                            console.log(response.Curriculum);
                             setreload(!reload);
-                            EditLectureDialogclose();
                             setsnackbaropen(true);
+                            // setCurriculum(response.Curriculum);
+                            // EditLectureDialogclose();
 
                         }
                         else {
                             seterrorsnackbaropen(true);
                         }
+
+                        console.log("one");
                     }
                     else {
+                        console.log("two");
                         HandleClose();
                         seterrorsnackbaropen(true);
                     }
 
+                    return;
+
                 } catch (e) {
+                    console.log("three");
                     seterrorsnackbaropen(true);
                 }
 
             }
         }
         else {
+            console.log("four");
             seterrorsnackbaropen(true);
         }
     };

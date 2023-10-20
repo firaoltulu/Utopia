@@ -19,18 +19,20 @@ const getListStyle = isDraggingOver => ({
 
 export default function DraggableList(props) {
 
-    const { Curriculum, reload, setreload, courseID, setCurriculum } = props;
+    const { Curriculum, reload, setreload, courseID, setCurriculum, selectlanguage } = props;
 
     const [module, setmodule] = React.useState([]);
 
     const [snackbaropen, setsnackbaropen] = React.useState(false);
     const [errorsnackbaropen, seterrorsnackbaropen] = React.useState(false);
 
+
     React.useEffect(() => {
-        if (Curriculum.length > 0) {
-            setmodule([...Curriculum[0].Modules]);
+        if (Curriculum !== null) {
+            setmodule([...Curriculum.Modules]);
         }
         else {
+            setmodule([]);
         }
     }, [Curriculum]);
 
@@ -47,7 +49,7 @@ export default function DraggableList(props) {
         const oldarr = Array.from(module, (row, index) => { return row.ModuleID });
 
         const item = reorder(
-            Curriculum[0].Modules,
+            Curriculum.Modules,
             result.source.index,
             result.destination.index,
         );
@@ -63,8 +65,11 @@ export default function DraggableList(props) {
 
             const newobj = Object.assign({}, {
                 Module: newarr,
-                CourseID: courseID
+                CourseID: courseID,
+                CurriculumID: Curriculum.CurriculumID
             });
+
+            console.log({ newobj });
 
             setmodule(item);
 
@@ -72,7 +77,8 @@ export default function DraggableList(props) {
 
             if (response.done) {
 
-                setreload(!reload);
+                // setreload(!reload);
+                setCurriculum(response.Curriculum);
                 seterrorsnackbaropen(false);
                 setsnackbaropen(true);
 
@@ -104,15 +110,18 @@ export default function DraggableList(props) {
 
         <Grid container>
 
-            <Grid item xs={12} sx={{}}>
-                {Curriculum.length > 0 && <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
+            {Curriculum && <Grid item xs={12} sx={{}}>
+
+                {<DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart}>
 
                     <Droppable droppableId="droppable-list-Module">
 
                         {(provided, snapshot) => (
                             <Card elevation={12} ref={provided.innerRef} {...provided.droppableProps} style={getListStyle(snapshot.isDraggingOver)}>
                                 {module.map((item, index) => (
-                                    <DraggableListItem item={item} index={index} reload={reload} setreload={setreload} courseID={courseID} key={`droppable-list-Module-${index}`} />
+                                    <DraggableListItem CurriculumID={Curriculum.CurriculumID} selectlanguage={selectlanguage}
+                                        item={item} index={index} reload={reload} setreload={setreload}
+                                        courseID={courseID} setCurriculum={setCurriculum} key={`droppable-list-Module-${index}`} />
                                 ))}
                                 {provided.placeholder}
                             </Card>
@@ -122,8 +131,7 @@ export default function DraggableList(props) {
 
                 </DragDropContext>}
 
-
-            </Grid>
+            </Grid>}
 
             <Snackbar open={errorsnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
                 <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
@@ -142,3 +150,5 @@ export default function DraggableList(props) {
     );
 
 };
+
+

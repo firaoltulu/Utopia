@@ -410,6 +410,7 @@ async function AddNewCurriculumItem(request) {
     formdata.append("Objective", request.Objective);
 
     formdata.append("CourseID", request.CourseID);
+    formdata.append("LanguageID", request.LanguageID);
 
     var requestOptions = {
         method: 'POST',
@@ -446,6 +447,7 @@ async function GetCurriculumItem(CourseID = -1) {
                     Curriculums(CourseID: ${CourseID}) {
                       CourseID
                       CurriculumID
+                      LanguageID
                       Modules {
                         ModuleID
                         Title
@@ -498,23 +500,25 @@ async function GetCurriculumItem(CourseID = -1) {
         };
 
         var fetchedresponse;
+        var response;
         try {
-            const response = await fetch(`${API_URL}/curriculums/graphql/curriculum`, requestOptions);
+            response = await fetch(`${API_URL}/curriculums/graphql/curriculum`, requestOptions);
             fetchedresponse = await response.json();
-            if (response.status === 200) {
-                return {
-                    fetcheddata: fetchedresponse,
-                    done: true
-                };
-            }
-            else {
-                return {
-                    done: false
-                };
-            }
-
         } catch (error) {
-            return error;
+            return {
+                done: false,
+            };
+        }
+        if (response.status === 200) {
+            return {
+                fetcheddata: fetchedresponse,
+                done: true
+            };
+        }
+        else {
+            return {
+                done: false
+            };
         }
     }
 
@@ -529,6 +533,7 @@ async function HttpEditCurriculumModule(request) {
     formdata.append("Objective", request.Objective);
     formdata.append("CourseID", request.CourseID);
     formdata.append("ModuleID", request.ModuleID);
+    formdata.append("CurriculumID", request.CurriculumID);
 
     var requestOptions = {
         method: 'POST',
@@ -537,15 +542,17 @@ async function HttpEditCurriculumModule(request) {
     };
 
     try {
-        response = await fetch(`${API_URL}/curriculums/EditCurriculumModuleItem`, requestOptions);
+        response = await axios.post(`${API_URL}/curriculums/EditCurriculumModuleItem`, formdata);
     } catch (err) {
         return {
             done: false,
         };
     }
     if (response.status === 200) {
+        console.log({ response });
         return {
-            done: true
+            done: true,
+            Curriculum: response.data.Curriculum
         };
     }
     else {
@@ -561,6 +568,7 @@ async function HttpEditCurriculumModuleIndex(request) {
     let response;
     var formdata = new FormData();
     formdata.append("CourseID", request.CourseID);
+    formdata.append("CurriculumID", request.CurriculumID);
     formdata.append("Module", JSON.stringify([...request.Module]));
 
     var requestOptions = {
@@ -570,7 +578,7 @@ async function HttpEditCurriculumModuleIndex(request) {
     };
 
     try {
-        response = await fetch(`${API_URL}/curriculums/EditCurriculumModuleIndex`, requestOptions);
+        response = await axios.post(`${API_URL}/curriculums/EditCurriculumModuleIndex`, formdata);
     } catch (err) {
         return {
             done: false,
@@ -578,7 +586,8 @@ async function HttpEditCurriculumModuleIndex(request) {
     }
     if (response.status === 200) {
         return {
-            done: true
+            done: true,
+            Curriculum: response.data.Curriculum
         };
     }
     else {
@@ -590,7 +599,6 @@ async function HttpEditCurriculumModuleIndex(request) {
 
 async function AddNewCurriculumModuleLectureItem(request) {
 
-    console.log({ request });
     let response;
     var formdata = new FormData();
 
@@ -609,16 +617,16 @@ async function AddNewCurriculumModuleLectureItem(request) {
     };
 
     try {
-        response = await fetch(`${API_URL}/curriculums/AddNewCurriculumModuleLectureItem`, requestOptions);
+        response = await axios.post(`${API_URL}/curriculums/AddNewCurriculumModuleLectureItem`, formdata);
     } catch (err) {
-        console.log({ response });
         return {
             done: false,
         };
     }
     if (response.status === 200) {
         return {
-            done: true
+            done: true,
+            Curriculum: response.data.Curriculum
         };
     }
     else {
@@ -630,7 +638,6 @@ async function AddNewCurriculumModuleLectureItem(request) {
 
 async function HttpEditCurriculumModuleLectureItem(request) {
 
-    console.log({ request });
     let response;
     var formdata = new FormData();
     formdata.append("Title", request.Title);
@@ -647,7 +654,7 @@ async function HttpEditCurriculumModuleLectureItem(request) {
     };
 
     try {
-        response = await fetch(`${API_URL}/curriculums/EditCurriculumModuleLectureItem`, requestOptions);
+        response = await axios.post(`${API_URL}/curriculums/EditCurriculumModuleLectureItem`, formdata);
     } catch (err) {
         return {
             done: false,
@@ -655,7 +662,8 @@ async function HttpEditCurriculumModuleLectureItem(request) {
     }
     if (response.status === 200) {
         return {
-            done: true
+            done: true,
+            Curriculum: response.data.Curriculum
         };
     }
     else {
@@ -663,6 +671,7 @@ async function HttpEditCurriculumModuleLectureItem(request) {
             done: false
         };
     }
+
 }
 
 async function GetCurriculumModuleItem(CourseID = -1, ModuleID = -1) {
@@ -733,7 +742,7 @@ async function HttpEditCurriculumModuleLectureIndex(request) {
     };
 
     try {
-        response = await fetch(`${API_URL}/curriculums/EditCurriculumModuleLectureIndex`, requestOptions);
+        response = await axios.post(`${API_URL}/curriculums/EditCurriculumModuleLectureIndex`, formdata);
     } catch (err) {
         return {
             done: false,
@@ -741,7 +750,8 @@ async function HttpEditCurriculumModuleLectureIndex(request) {
     }
     if (response.status === 200) {
         return {
-            done: true
+            done: true,
+            Curriculum: response.data.Curriculum
         };
     }
     else {
@@ -786,9 +796,17 @@ async function HttpAddCurriculumModuleLectureItemContent(request) {
             done: false,
         };
     }
-    return {
-        done: true,
-    };
+    if (response.status === 200) {
+        return {
+            done: true,
+            Curriculum: response.data.Curriculum
+        };
+    }
+    else {
+        return {
+            done: false
+        };
+    }
 
 }
 
@@ -928,15 +946,21 @@ async function HttpAddCurriculumModuleLectureItemContentExtraResource(request) {
         response = await axios.post(`${API_URL}/curriculums/AddCurriculumModuleLectureContentExtraResource`, formdata, config);
         // response = await fetch(`${API_URL}/curriculums/AddCurriculumModuleLectureContent`, requestOptions);
     } catch (err) {
-        console.log({ response });
         return {
             done: false,
         };
     }
-    return {
-        done: true,
-    };
-
+    if (response.status === 200) {
+        return {
+            done: true,
+            Curriculum: response.data.Curriculum
+        };
+    }
+    else {
+        return {
+            done: false
+        };
+    }
 }
 
 async function HttpDeleteCurriculumModuleLectureContentExtraResource(request) {
@@ -958,16 +982,24 @@ async function HttpDeleteCurriculumModuleLectureContentExtraResource(request) {
 
     try {
         // response = await axios.post(`${API_URL}/curriculums/`, formdata);
-        response = await fetch(`${API_URL}/curriculums/DeleteCurriculumModuleLectureContentExtraResource`, requestOptions);
+        response = await axios.post(`${API_URL}/curriculums/DeleteCurriculumModuleLectureContentExtraResource`, formdata);
     } catch (err) {
         console.log({ response });
         return {
             done: false,
         };
     }
-    return {
-        done: true,
-    };
+    if (response.status === 200) {
+        return {
+            done: true,
+            Curriculum: response.data.Curriculum
+        };
+    }
+    else {
+        return {
+            done: false
+        };
+    }
 
 }
 
@@ -990,16 +1022,16 @@ async function AddNewCurriculumModuleQuestionItem(request) {
     };
 
     try {
-        response = await fetch(`${API_URL}/curriculums/AddNewCurriculumModuleQuestionItem`, requestOptions);
+        response = await axios.post(`${API_URL}/curriculums/AddNewCurriculumModuleQuestionItem`, formdata);
     } catch (err) {
-        console.log({ response });
         return {
             done: false,
         };
     }
     if (response.status === 200) {
         return {
-            done: true
+            done: true,
+            Curriculum: response.data.Curriculum
         };
     }
     else {
@@ -1009,13 +1041,13 @@ async function AddNewCurriculumModuleQuestionItem(request) {
     }
 }
 
-async function GetCurriculumModuleLectureQuestionsItem(CourseID = -1, ModuleID = -1, LectureID = -1) {
+async function GetCurriculumModuleLectureQuestionsItem(CourseID = -1, CurriculumID = -1, ModuleID = -1, LectureID = -1) {
 
-    if (CourseID > -1 && ModuleID > -1 && LectureID > -1) {
+    if (CourseID > -1 && ModuleID > -1 && LectureID > -1 && CurriculumID > -1) {
 
         var graphql = JSON.stringify({
             query: `{
-                Questions(CourseID: ${CourseID},ModuleID:${ModuleID},LectureID:${LectureID}) {
+                Questions(CourseID: ${CourseID},CurriculumID: ${CurriculumID},ModuleID:${ModuleID},LectureID:${LectureID}) {
                     Question
                     QuestionID
                     Answer{
@@ -1067,12 +1099,10 @@ async function HttpEditCurriculumModuleQuestionItem(request) {
     var formdata = new FormData();
     formdata.append("Title", request.Title);
     formdata.append("Discription", request.Discription);
-
     formdata.append("CourseID", request.CourseID);
     formdata.append("CurriculumID", request.CurriculumID);
     formdata.append("ModuleID", request.ModuleID);
     formdata.append("LectureID", request.LectureID);
-
 
     var requestOptions = {
         method: 'POST',
@@ -1081,16 +1111,18 @@ async function HttpEditCurriculumModuleQuestionItem(request) {
     };
 
     try {
-        response = await fetch(`${API_URL}/curriculums/EdiCurriculumModuleQuestionItem`, requestOptions);
+
+        response = await axios.post(`${API_URL}/curriculums/EdiCurriculumModuleQuestionItem`, formdata);
+
     } catch (err) {
-        console.log({ response });
         return {
             done: false,
         };
     }
     if (response.status === 200) {
         return {
-            done: true
+            done: true,
+            Curriculum: response.data.Curriculum
         };
     }
     else {
@@ -1098,6 +1130,7 @@ async function HttpEditCurriculumModuleQuestionItem(request) {
             done: false
         };
     }
+
 };
 
 async function EditNewCurriculumModuleQuestionItemContent(request) {
@@ -1348,19 +1381,6 @@ async function AddNewPrice_Tier(Price_Tier = null) {
 
 async function GetAllPrice_Tiers(skip = 0, limit = 10) {
 
-    // var graphql = JSON.stringify({
-    //     query: `{
-    //             Languages{
-    //                 LanguageID,
-    //                 Title,
-    //                 EnglishTitle,
-    //                 AddedDate,
-    //                 ModifedDate
-    //             }
-    //          }`,
-    //     variables: { "skip": skip, "limit": limit },
-    // });
-
     var requestOptions = {
         method: 'GET',
         headers: {
@@ -1394,6 +1414,76 @@ async function GetAllPrice_Tiers(skip = 0, limit = 10) {
         return {
             done: false
         };
+    }
+
+};
+
+async function EditPrice_Tier(Price_Tier = null) {
+
+    if (Price_Tier !== null) {
+
+        let response;
+        var formdata = new FormData();
+        var newobj = JSON.stringify(Price_Tier);
+        formdata.append("Price_Tier", newobj);
+
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        try {
+
+            var requestOptions = {
+                // method: 'POST',
+                headers: myHeaders,
+                body: newobj,
+                redirect: 'follow',
+            };
+
+            const config = {
+                onUploadProgress: (progressEvent) => {
+
+                }
+            };
+
+            response = await axios.post(`${API_URL}/price_tiers/EditPrice_tiers`, formdata, config);
+
+            // console.log({ response });
+
+            if (response.status === 200) {
+                return {
+                    done: true,
+                    reason: 0,
+                    result: response.data.result,
+                };
+            }
+            else {
+                return {
+                    done: false,
+                    reason: response.data.reason,
+                    result: null,
+                };
+            }
+
+        } catch (err) {
+
+            console.log({ err });
+
+            return {
+                done: false,
+                reason: err.response.data.reason,
+                result: null
+            };
+
+        }
+
+    } else {
+
+        return {
+            done: false,
+            reason: 0,
+            result: null
+        };
+
     }
 
 };
@@ -2118,6 +2208,7 @@ export {
     //Price_Tier
     AddNewPrice_Tier,
     GetAllPrice_Tiers,
+    EditPrice_Tier,
 
 
     //Curriculum

@@ -73,6 +73,9 @@ const Extra_ResourceSchema = new mongoose.Schema({
     Resource_Content_type: {
         type: String,
     },
+    Extra_Resource_AWS_S3_KEY: {
+        type: String,
+    },
 
 });
 
@@ -96,6 +99,9 @@ const LectureSchema = new mongoose.Schema({
         type: String,
     },
     Content: {
+        type: String,
+    },
+    AWS_S3_KEY: {
         type: String,
     },
     Extra_Resource: {
@@ -148,6 +154,10 @@ const CurriculumSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
+    LanguageID: {
+        type: Number,
+        required: true,
+    },
     Modules: {
         type: [ModuleSchema],
         required: true,
@@ -164,6 +174,7 @@ const CurriculumSchema = new mongoose.Schema({
         required: true,
     },
 });
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function findCurriculum(filter, Curriculumdatabase) {
     return await Curriculumdatabase.findOne(filter);
@@ -214,33 +225,40 @@ async function AddNewCurriculumItem(Curriculum = '', body = null) {
 
             const Curriculumdatabase = mongoose.model(`Curriculum-${Curriculum}`, CurriculumSchema);
 
-            if (body !== null && Curriculumdatabase) {
-
-                const newCurriculumID = (await getLatestCurriculumNumber(Curriculumdatabase)) + 1;
-
-                const newLaunch = Object.assign({}, {
-
-                    CurriculumID: body.CourseID,
-                    Modules: [],
-                    AddedDate: new Date().toISOString(),
-                    ModifyDate: [],
-                    CourseID: body.CourseID
-
-                });
-
-                const response = await saveCurriculum(Curriculumdatabase, newLaunch);
-
-                if (response) {
-                    return { done: true, Curriculumname: `Curriculum-${Curriculum}` };
-                }
-                else {
-                    return { done: false };
-                }
-
+            if (Curriculumdatabase) {
+                return { done: true, Curriculumname: `Curriculum-${Curriculum}` };
             }
             else {
                 return { done: false };
             }
+
+            // if (body !== null && Curriculumdatabase) {
+
+            //     const newCurriculumID = (await getLatestCurriculumNumber(Curriculumdatabase)) + 1;
+
+            //     const newLaunch = Object.assign({}, {
+
+            //         CurriculumID: body.CourseID,
+            //         Modules: [],
+            //         AddedDate: new Date().toISOString(),
+            //         ModifyDate: [],
+            //         CourseID: body.CourseID
+
+            //     });
+
+            //     const response = await saveCurriculum(Curriculumdatabase, newLaunch);
+
+            //     if (response) {
+            //         return { done: true, Curriculumname: `Curriculum-${Curriculum}` };
+            //     }
+            //     else {
+            //         return { done: false };
+            //     }
+
+            // }
+            // else {
+            //     return { done: false };
+            // }
 
         } catch (e) {
             return { done: false };
@@ -305,7 +323,7 @@ async function AddNewCurriculumModules(Module) {
 
         if (RedactedCurriculum) {
 
-            const existcurriculum = await existsCurriculumWithId(Module.CourseID, RedactedCurriculum);
+            const existcurriculum = await existsCurriculumWithId(Module.LanguageID, RedactedCurriculum);
 
             if (existcurriculum) {
 
@@ -372,7 +390,8 @@ async function AddNewCurriculumModules(Module) {
 
                 const newcurriculum = Object.assign({}, {
 
-                    CurriculumID: Module.CourseID,
+                    CurriculumID: Module.LanguageID,
+                    LanguageID: Module.LanguageID,
                     Modules: arr,
                     AddedDate: new Date().toISOString(),
                     ModifyDate: [],
@@ -388,6 +407,7 @@ async function AddNewCurriculumModules(Module) {
                 else {
                     return { done: false };
                 }
+
 
             }
 
@@ -406,8 +426,6 @@ async function EditCurriculumitem(body = null) {
 
     try {
 
-        console.log({ body });
-
         if (body !== null) {
 
             const res = await mongoose.connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -421,6 +439,7 @@ async function EditCurriculumitem(body = null) {
                     });
                 }).catch((err) => Promise.reject(err.message || err));
 
+
             const findres = res.collections.find((row, index) => {
                 if (row.name === `curriculum-${body.CourseID}` && row.type === 'collection') {
                     return row;
@@ -433,7 +452,7 @@ async function EditCurriculumitem(body = null) {
 
                 if (RedactedCurriculum) {
 
-                    const existcurriculum = await existsCurriculumWithId(body.CourseID, RedactedCurriculum);
+                    const existcurriculum = await existsCurriculumWithId(body.CurriculumID, RedactedCurriculum);
 
                     if (existcurriculum) {
 
@@ -474,6 +493,7 @@ async function EditCurriculumitem(body = null) {
 
                             const newarr = Array.from(existcurriculum.Modules, (row, index) => { return row.ModuleID });
 
+
                             const found = body.Module.filter((oldrow, index) => {
 
                                 const found = newarr.find((newrow, index) => {
@@ -499,9 +519,6 @@ async function EditCurriculumitem(body = null) {
                             });
 
                             const newobj = Object.assign({}, {
-                                _id: existcurriculum._id,
-                                AddedDate: existcurriculum.AddedDate,
-                                CourseID: existcurriculum.CourseID,
                                 Modules: newobjarr,
                                 __v: existcurriculum.__v,
                                 ModifyDate: existcurriculum.ModifyDate.push(new Date().toISOString())
@@ -572,12 +589,13 @@ async function AddNewCurriculumModuleLecture(body) {
                     return row;
                 }
             });
+
             if (findres) {
 
                 const RedactedCurriculum = mongoose.model(findres.name, CurriculumSchema);
                 if (RedactedCurriculum) {
 
-                    const existcurriculum = await existsCurriculumWithId(body.CourseID, RedactedCurriculum);
+                    const existcurriculum = await existsCurriculumWithId(body.CurriculumID, RedactedCurriculum);
 
                     if (existcurriculum) {
 
@@ -608,6 +626,7 @@ async function AddNewCurriculumModuleLecture(body) {
                                     Discription: body.Description,
                                     Content_Type: "",
                                     Content: "",
+                                    AWS_S3_KEY: "",
                                     Resource_Content: "",
                                     Resource_Content_type: "",
                                     Quiz_content: [],
@@ -637,6 +656,7 @@ async function AddNewCurriculumModuleLecture(body) {
                             else {
                                 return { done: false };
                             }
+
                         }
                         else {
                             return { done: false };
@@ -696,7 +716,7 @@ async function EditCurriculumModuleLectureItem(body) {
 
                 if (RedactedCurriculum) {
 
-                    const existcurriculum = await existsCurriculumWithId(body.CourseID, RedactedCurriculum);
+                    const existcurriculum = await existsCurriculumWithId(body.CurriculumID, RedactedCurriculum);
 
                     if (existcurriculum) {
 
@@ -714,6 +734,7 @@ async function EditCurriculumModuleLectureItem(body) {
                                 }
                             });
 
+
                             if (foundlecture && foundlecture.Type === "lecture") {
 
                                 if (body.Title) {
@@ -727,6 +748,9 @@ async function EditCurriculumModuleLectureItem(body) {
                                 }
                                 if (body.Content) {
                                     foundlecture.Content = body.Content;
+                                }
+                                if (body.AWS_S3_KEY) {
+                                    foundlecture.AWS_S3_KEY = body.AWS_S3_KEY;
                                 }
                                 if (body.Extra_Resource) {
                                     foundlecture.Extra_Resource.push(...body.Extra_Resource);// = body.Extra_Resource;
@@ -746,6 +770,7 @@ async function EditCurriculumModuleLectureItem(body) {
                                 } else {
                                     return { done: false };
                                 }
+
                             }
                             else {
                                 return { done: false };
@@ -811,7 +836,7 @@ async function EditCurriculumModuleLectureIndex(body = null) {
 
                 if (RedactedCurriculum) {
 
-                    const existcurriculum = await existsCurriculumWithId(body.CourseID, RedactedCurriculum);
+                    const existcurriculum = await existsCurriculumWithId(body.CurriculumID, RedactedCurriculum);
 
                     if (existcurriculum) {
 
@@ -979,7 +1004,7 @@ async function AddCurriculumModuleQuestionItem(body) {
 
                 if (RedactedCurriculum) {
 
-                    const existcurriculum = await existsCurriculumWithId(body.CourseID, RedactedCurriculum);
+                    const existcurriculum = await existsCurriculumWithId(body.CurriculumID, RedactedCurriculum);
 
                     if (existcurriculum) {
 
@@ -1044,8 +1069,6 @@ async function AddCurriculumModuleQuestionItem(body) {
                                         // console.log(newobj.Answer);
                                         foundlecture.Quiz_content.push(newobj);
 
-                                        console.log({ foundlecture });
-
                                     }
                                     else {
                                         return { done: true };
@@ -1072,9 +1095,9 @@ async function AddCurriculumModuleQuestionItem(body) {
 
                     }
                     else {
-
                         return { done: false };
                     }
+
                 }
                 else {
 
@@ -1126,7 +1149,7 @@ async function EditCurriculumModuleQuestionItem(body) {
 
                 if (RedactedCurriculum) {
 
-                    const existcurriculum = await existsCurriculumWithId(body.CourseID, RedactedCurriculum);
+                    const existcurriculum = await existsCurriculumWithId(body.CurriculumID, RedactedCurriculum);
 
                     if (existcurriculum) {
 

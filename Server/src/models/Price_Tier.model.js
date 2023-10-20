@@ -132,8 +132,6 @@ async function EditPrice_TierById(Price_Tier_ID = 0, body = null) {
 
                 });
 
-                console.log({ EditPrice_tier })
-
                 const response = await updatePrice_Tier(Price_Tier.Price_Tier_ID, EditPrice_tier);
                 if (response) {
                     return { done: true };

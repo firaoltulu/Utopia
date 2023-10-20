@@ -313,7 +313,7 @@ export default function Price_tier_Add({ setAuthor }) {
 
                 </Card >
 
-                <List_Price_Tiers currencies={currencies} price_tiers={price_tiers}></List_Price_Tiers>
+                <List_Price_Tiers currencies={currencies} price_tiers={price_tiers} setprice_tiers={setprice_tiers}></List_Price_Tiers>
 
 
                 <Snackbar open={snackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
@@ -404,19 +404,19 @@ export default function Price_tier_Add({ setAuthor }) {
                         <Grid container columnSpacing={3} rowSpacing={3}>
 
                             <Grid item xs={12} md={3}>
-                                <Skeleton variant="rounded" fullWidth height={60} />
+                                <Skeleton variant="rounded" height={60} />
                             </Grid>
 
                             <Grid item xs={12} md={3}>
-                                <Skeleton variant="rounded" fullWidth height={60} />
+                                <Skeleton variant="rounded" height={60} />
                             </Grid>
 
                             <Grid item xs={12} md={3}>
-                                <Skeleton variant="rounded" fullWidth height={60} />
+                                <Skeleton variant="rounded" height={60} />
                             </Grid>
 
                             <Grid item xs={12} md={3}>
-                                <Skeleton variant="rounded" fullWidth height={60} />
+                                <Skeleton variant="rounded" height={60} />
                             </Grid>
 
                         </Grid>
@@ -430,7 +430,7 @@ export default function Price_tier_Add({ setAuthor }) {
                 <Grid container sx={{ marginTop: "1em" }}>
 
                     <Grid item xs={12} md={12}>
-                        <Skeleton variant="rounded" fullWidth height={60} />
+                        <Skeleton variant="rounded" height={60} />
                     </Grid>
 
                     <Grid item xs={12} sx={{ marginTop: "1em" }}>
@@ -454,19 +454,19 @@ export default function Price_tier_Add({ setAuthor }) {
                                     {[1].map((row, index) => (
                                         <TableRow key={`list-Price_Tiers-key`}>
                                             <StyledTableCell component="th" scope="row">
-                                                <Skeleton variant="rounded" fullWidth height={60} />
+                                                <Skeleton variant="rounded" height={60} />
                                             </StyledTableCell>
                                             <StyledTableCell align="right" >
-                                                <Skeleton variant="rounded" fullWidth height={60} />
+                                                <Skeleton variant="rounded" height={60} />
                                             </StyledTableCell>
                                             <StyledTableCell align="right" >
-                                                <Skeleton variant="rounded" fullWidth height={60} />
+                                                <Skeleton variant="rounded" height={60} />
                                             </StyledTableCell>
                                             <StyledTableCell align="right">
-                                                <Skeleton variant="rounded" fullWidth height={60} />
+                                                <Skeleton variant="rounded" height={60} />
                                             </StyledTableCell>
                                             <StyledTableCell align="right">
-                                                <Skeleton variant="rounded" fullWidth height={60} />
+                                                <Skeleton variant="rounded" height={60} />
                                             </StyledTableCell>
                                         </TableRow>
                                     ))}
@@ -480,52 +480,51 @@ export default function Price_tier_Add({ setAuthor }) {
                 </Grid>
             }
 
-            {
-                refresh && <Box>
-                    <Card variant="outlined" sx={{ margin: "1em" }}>
+            {refresh && <Box>
+                <Card variant="outlined" sx={{ margin: "1em" }}>
 
-                        <CardContent >
+                    <CardContent >
 
+                        <Box
+                            sx={{
+                                marginTop: 8,
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Typography component="h4" variant="h4">
+                                Connect to the internet
+                            </Typography>
+                            <Typography component="h6" variant="h6">
+                                You're offline. Check your connection.
+                            </Typography>
                             <Box
-                                sx={{
-                                    marginTop: 8,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                }}
+                                component="form"
+                                // onSubmit={handleSubmit}
+                                noValidate
+                                sx={{ mt: 1 }}
                             >
-                                <Typography component="h4" variant="h4">
-                                    Connect to the internet
-                                </Typography>
-                                <Typography component="h6" variant="h6">
-                                    You're offline. Check your connection.
-                                </Typography>
-                                <Box
-                                    component="form"
-                                    // onSubmit={handleSubmit}
-                                    noValidate
-                                    sx={{ mt: 1 }}
+
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    variant="contained"
+                                    color="firr"
+                                    sx={{ mt: 3, mb: 2 }}
+                                    onClick={(event) => { handleRefresh(event) }}
                                 >
-
-                                    <Button
-                                        type="submit"
-                                        fullWidth
-                                        variant="contained"
-                                        color="firr"
-                                        sx={{ mt: 3, mb: 2 }}
-                                        onClick={(event) => { handleRefresh(event) }}
-                                    >
-                                        Refresh
-                                    </Button>
-
-                                </Box>
+                                    Refresh
+                                </Button>
 
                             </Box>
 
-                        </CardContent>
+                        </Box>
 
-                    </Card >
-                </Box>
+                    </CardContent>
+
+                </Card >
+            </Box>
             }
 
         </Box >

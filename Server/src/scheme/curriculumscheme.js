@@ -78,6 +78,7 @@ const CurriculumType = new GraphQLObjectType({
     fields: () => ({
 
         CurriculumID: { type: GraphQLInt },
+        LanguageID: { type: GraphQLInt },
         Modules: { type: new GraphQLList(ModuleType) },
         AddedDate: { type: GraphQLString },
         ModifyDate: { type: new GraphQLList(GraphQLString) },
@@ -104,6 +105,42 @@ const RootQuery = new GraphQLObjectType({
                         // .limit(args.limit);
                         // console.log({ res });
                         return res.response;
+                    } else {
+                        return null;
+                    }
+
+                } catch (e) {
+                    return null;
+                }
+
+            }
+        },
+
+        Curriculum: {
+            type: CurriculumType,
+            args: {
+                CourseID: { type: GraphQLInt },
+                CurriculumID: { type: GraphQLInt },
+            },
+            async resolve(parent, args) {
+                try {
+                    const course = await existsCourseWithId(args.CourseID);
+                    if (course) {
+                        const res = await getAllCurriculumContent(course);
+
+                        const foundCurriculum = res.response.find((row, index) => {
+                            if (row.CurriculumID === args.CurriculumID) {
+                                return row;
+                            }
+                            else {
+                                return null;
+                            }
+                        })
+                        // .sort({ LanguageID: 1 })
+                        // .skip(args.skip)
+                        // .limit(args.limit);
+                        // console.log({ res });
+                        return foundCurriculum;
                     } else {
                         return null;
                     }
@@ -163,6 +200,7 @@ const RootQuery = new GraphQLObjectType({
             type: LectureType,
             args: {
                 CourseID: { type: GraphQLInt },
+                CurriculumID: { type: GraphQLInt },
                 ModuleID: { type: GraphQLInt },
                 LectureID: { type: GraphQLInt },
             },
@@ -171,9 +209,18 @@ const RootQuery = new GraphQLObjectType({
                     const course = await existsCourseWithId(args.CourseID);
                     if (course) {
                         var res = await getAllCurriculumContent(course);
-                        res = Object.assign({ ...res.response }, {});
+                        // res = Object.assign({ ...res.response }, {});
 
-                        const foundmodule = res[0].Modules.find((row, index) => {
+                        const foundCurriculum = res.response.find((row, index) => {
+                            if (row.CurriculumID === args.CurriculumID) {
+                                return row;
+                            }
+                            else {
+                                return null;
+                            }
+                        })
+
+                        const foundmodule = foundCurriculum.Modules.find((row, index) => {
                             if (row.ModuleID === args.ModuleID) {
                                 return row;
                             }
@@ -224,6 +271,7 @@ const RootQuery = new GraphQLObjectType({
             type: new GraphQLList(QuizType),
             args: {
                 CourseID: { type: GraphQLInt },
+                CurriculumID: { type: GraphQLInt },
                 ModuleID: { type: GraphQLInt },
                 LectureID: { type: GraphQLInt },
             },
@@ -232,10 +280,10 @@ const RootQuery = new GraphQLObjectType({
                     const course = await existsCourseWithId(args.CourseID);
                     if (course) {
                         var res = await getAllCurriculumContent(course);
-                        res = Object.assign({ ...res.response }, {});
+                        res = res.response;
 
-                        const foundmodule = res[0].Modules.find((row, index) => {
-                            if (row.ModuleID === args.ModuleID) {
+                        const foundCurriculum = res.find((row, index) => {
+                            if (row.CurriculumID === args.CurriculumID) {
                                 return row;
                             }
                             else {
@@ -243,10 +291,10 @@ const RootQuery = new GraphQLObjectType({
                             }
                         });
 
-                        if (foundmodule) {
+                        if (foundCurriculum) {
 
-                            const foundlecture = foundmodule.Lectures.find((row, index) => {
-                                if (row.LectureID === args.LectureID) {
+                            const foundmodule = foundCurriculum.Modules.find((row, index) => {
+                                if (row.ModuleID === args.ModuleID) {
                                     return row;
                                 }
                                 else {
@@ -254,9 +302,25 @@ const RootQuery = new GraphQLObjectType({
                                 }
                             });
 
-                            if (foundlecture && foundlecture.Quiz_content.length > 0) {
-                                
-                                return foundlecture.Quiz_content;
+                            if (foundmodule) {
+
+                                const foundlecture = foundmodule.Lectures.find((row, index) => {
+                                    if (row.LectureID === args.LectureID) {
+                                        return row;
+                                    }
+                                    else {
+                                        return null;
+                                    }
+                                });
+
+                                if (foundlecture && foundlecture.Quiz_content.length > 0) {
+
+                                    return foundlecture.Quiz_content;
+                                }
+                                else {
+                                    return null;
+                                }
+
                             }
                             else {
                                 return null;
@@ -270,7 +334,7 @@ const RootQuery = new GraphQLObjectType({
                         // .skip(args.skip)
                         // .limit(args.limit);
                         // console.log({ res });
-                        return res.response;
+                        // return res.response;
                     } else {
                         return null;
                     }

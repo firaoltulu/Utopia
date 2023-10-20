@@ -3,7 +3,13 @@ var path = require('path');
 const express = require("express");
 var { graphqlHTTP } = require('express-graphql');
 const multer = require('multer');
+const axios = require('axios');
+const FormData = require('form-data');
+require('dotenv').config();
+
+
 const schema = require("../../scheme/curriculumscheme");
+
 
 const { existsCourseWithId } = require("../../models/Course.model");
 
@@ -22,7 +28,8 @@ const {
     httpDeleteCurriculumModuleLectureContentExtraResource,
     httpAddNewCurriculumModuleQuestionItem,
     httpEditNewCurriculumModuleQuestionItemContent,
-    httpEditCurriculumModuleQuestionItem
+    httpEditCurriculumModuleQuestionItem,
+    httpStreamCurriculumModuleLectureVideoContent
     // httpGetAllCourses,
     // httpEditCourse,
     // httpDeleteCourse
@@ -56,164 +63,168 @@ const PERMITED_RESOURCE_DOCUMENTS_FILES =
 
 const DEFAULT_EXTRA_RESOURCE_NUMBER = 100;
 
-const storage = multer.diskStorage({
 
-    destination: async function (req, file, cb) {
 
-        try {
+const storage = multer.memoryStorage({
 
-            if (req.path === '/AddCurriculumModuleLectureContent') {
-                const body = req.body;
-                const CourseID = body.CourseID;
-                const CurriculumID = body.CurriculumID;
-                const ModuleID = body.ModuleID;
-                const LectureID = body.LectureID;
-                const Type = body.Type;
-                const foundlecture = body.foundlecture;
+    // destination: async function (req, file, cb) {
 
-                console.log({ foundlecture });
+    //     try {
 
-                if (foundlecture && foundlecture.Type === "lecture") {
+    //         if (req.path === '/AddCurriculumModuleLectureContent') {
 
-                    const dest = path.join(__dirname, '..', '..', '..', '..', '..', '..', 'Coursera',
-                        `${CourseID}`, `${ModuleID}`);
-                    const fsexist = fs.existsSync(dest);
-                    body.dest = dest;
-                    if (!fsexist) {
-                        console.log({ dest });
-                        console.log({ fsexist });
-                        fs.mkdirSync(dest, { recursive: true });
-                    }
-                    cb(null, dest);
+    //             const body = req.body;
+    //             const CourseID = body.CourseID;
+    //             const CurriculumID = body.CurriculumID;
+    //             const ModuleID = body.ModuleID;
+    //             const LectureID = body.LectureID;
+    //             const Type = body.Type;
+    //             const foundlecture = body.foundlecture;
+    //             const mimetype = body.mimetype;
 
-                }
-                else {
-                    cb(new Error('I don\'t have a clue the Lecture!'));
-                }
+    //             if (foundlecture && foundlecture.Type === "lecture") {
 
-            }
-            else if (req.path === '/AddCurriculumModuleLectureContentExtraResource') {
+    //                 // const dest = path.join(__dirname, '..', '..', '..', '..', '..', '..', 'Coursera',
+    //                 //     `${CourseID}`, `${CurriculumID}`, `${ModuleID}`);
+    //                 // const fsexist = fs.existsSync(dest);
+    //                 // body.dest = dest;
+    //                 // if (!fsexist) {
+    //                 //     console.log({ dest });
+    //                 //     fs.mkdirSync(dest, { recursive: true });
+    //                 // }
 
-                const body = req.body;
-                const CourseID = body.CourseID;
-                const CurriculumID = body.CurriculumID;
-                const ModuleID = body.ModuleID;
-                const LectureID = body.LectureID;
-                const foundlecture = body.foundlecture;
+    //                 console.log({ file });
+    //                 cb(new Error('I don\'t have a clue the Lecture!'));
+    //                 // cb(null, dest);
+    //                 // uploadfileto_byte_Scale(dest, foundlecture.LectureID.toString(), mimetype).then((data) => { console.log({ data }) }).catch((error) => { console.log({ error }) });
 
-                if (foundlecture && foundlecture.Type === "lecture") {
+    //             }
+    //             else {
+    //                 cb(new Error('I don\'t have a clue the Lecture!'));
+    //             }
 
-                    const dest = path.join(__dirname, '..', '..', '..', '..', '..', '..', 'Coursera_Extra_Resources',
-                        `${CourseID}`, `${ModuleID}`, `${LectureID}`);
-                    const fsexist = fs.existsSync(dest);
-                    body.dest = dest;
+    //         }
+    //         else if (req.path === '/AddCurriculumModuleLectureContentExtraResource') {
 
-                    if (!fsexist) {
-                        console.log({ dest });
-                        console.log({ fsexist });
-                        fs.mkdirSync(dest, { recursive: true });
-                    }
-                    cb(null, dest);
+    //             const body = req.body;
+    //             const CourseID = body.CourseID;
+    //             const CurriculumID = body.CurriculumID;
+    //             const ModuleID = body.ModuleID;
+    //             const LectureID = body.LectureID;
+    //             const foundlecture = body.foundlecture;
 
-                }
-                else {
+    //             if (foundlecture && foundlecture.Type === "lecture") {
 
-                    cb(new Error('I don\'t have a clue the Lecture!'));
+    //                 const dest = path.join(__dirname, '..', '..', '..', '..', '..', '..', 'Coursera_Extra_Resources',
+    //                     `${CourseID}`, `${CurriculumID}`, `${ModuleID}`, `${LectureID}`);
+    //                 const fsexist = fs.existsSync(dest);
+    //                 body.dest = dest;
 
-                }
-            }
-            else {
-                throw new Error();
-            }
+    //                 if (!fsexist) {
+    //                     console.log({ dest });
+    //                     console.log({ fsexist });
+    //                     fs.mkdirSync(dest, { recursive: true });
+    //                 }
+    //                 cb(null, dest);
+    //                 // uploadfileto_byte_Scale(dest, foundlecture.LectureID.toString(), mimetype).then((data) => { console.log({ data }) }).catch((error) => { console.log({ error }) });
+    //             }
+    //             else {
 
-        } catch (e) {
-            req.body = null;
-            cb(new Error('I don\'t have a clue!'));
-        }
+    //                 cb(new Error('I don\'t have a clue the Lecture!'));
 
-    },
+    //             }
+    //         }
+    //         else {
+    //             throw new Error();
+    //         }
 
-    filename: async function (req, file, cb) {
+    //     } catch (e) {
+    //         req.body = null;
+    //         cb(new Error('I don\'t have a clue!'));
+    //     }
 
-        try {
+    // },
 
-            const body = req.body;
-            const CourseID = body.CourseID;
-            const CurriculumID = body.CurriculumID;
-            const ModuleID = body.ModuleID;
-            const LectureID = body.LectureID;
-            const foundlecture = body.foundlecture;
-            body.originalname = file.originalname;
+    // filename: async function (req, file, cb) {
 
-            if (req.path === '/AddCurriculumModuleLectureContent') {
-                if (foundlecture && foundlecture.Type === "lecture") {
+    //     try {
 
-                    cb(null, foundlecture.LectureID.toString());
-                }
-                else {
+    //         const body = req.body;
+    //         const CourseID = body.CourseID;
+    //         const CurriculumID = body.CurriculumID;
+    //         const ModuleID = body.ModuleID;
+    //         const LectureID = body.LectureID;
+    //         const foundlecture = body.foundlecture;
+    //         body.originalname = file.originalname;
 
-                    cb(null, false);
-                    cb(new Error('I don\'t have a clue the Lecture!'));
+    //         if (req.path === '/AddCurriculumModuleLectureContent') {
+    //             if (foundlecture && foundlecture.Type === "lecture") {
+    //                 cb(null, foundlecture.LectureID.toString());
+    //             }
+    //             else {
 
-                }
-            }
-            else if (req.path === '/AddCurriculumModuleLectureContentExtraResource') {
+    //                 cb(null, false);
+    //                 cb(new Error('I don\'t have a clue the Lecture!'));
 
-                if (foundlecture && foundlecture.Type === "lecture") {
+    //             }
+    //         }
+    //         else if (req.path === '/AddCurriculumModuleLectureContentExtraResource') {
 
-                    if (foundlecture.Extra_Resource.length <= 0) {
+    //             if (foundlecture && foundlecture.Type === "lecture") {
 
-                        body.Extra_Resource_ID = DEFAULT_EXTRA_RESOURCE_NUMBER;
+    //                 if (foundlecture.Extra_Resource.length <= 0) {
 
-                        cb(null, DEFAULT_EXTRA_RESOURCE_NUMBER.toString());
-                    }
-                    else if (foundlecture.Extra_Resource.length > 0) {
-                        console.log(foundlecture.Extra_Resource);
+    //                     body.Extra_Resource_ID = DEFAULT_EXTRA_RESOURCE_NUMBER;
 
-                        const found_Extra_Resource_ID = foundlecture.Extra_Resource.reduce((row, nextrow) => {
-                            if (row.Extra_Resource_ID > nextrow.Extra_Resource_ID) {
-                                return row;
-                            }
-                            else {
-                                return nextrow;
-                            }
-                        });
+    //                     cb(null, DEFAULT_EXTRA_RESOURCE_NUMBER.toString());
+    //                 }
+    //                 else if (foundlecture.Extra_Resource.length > 0) {
+    //                     console.log(foundlecture.Extra_Resource);
 
-                        console.log({ found_Extra_Resource_ID });
-                        if (found_Extra_Resource_ID) {
+    //                     const found_Extra_Resource_ID = foundlecture.Extra_Resource.reduce((row, nextrow) => {
+    //                         if (row.Extra_Resource_ID > nextrow.Extra_Resource_ID) {
+    //                             return row;
+    //                         }
+    //                         else {
+    //                             return nextrow;
+    //                         }
+    //                     });
 
-                            body.Extra_Resource_ID = found_Extra_Resource_ID.Extra_Resource_ID + 1;
 
-                            cb(null, body.Extra_Resource_ID.toString());
+    //                     if (found_Extra_Resource_ID) {
 
-                        }
-                        else {
-                            cb(null, false);
-                            cb(new Error('I don\'t have a clue!'));
-                        }
+    //                         body.Extra_Resource_ID = found_Extra_Resource_ID.Extra_Resource_ID + 1;
 
-                    }
-                    else {
-                        cb(null, false);
-                        cb(new Error('I don\'t have a clue!'));
+    //                         cb(null, body.Extra_Resource_ID.toString());
 
-                    }
+    //                     }
+    //                     else {
+    //                         cb(null, false);
+    //                         cb(new Error('I don\'t have a clue!'));
+    //                     }
 
-                }
-                else {
+    //                 }
+    //                 else {
+    //                     cb(null, false);
+    //                     cb(new Error('I don\'t have a clue!'));
 
-                    cb(null, false);
-                    cb(new Error('I don\'t have a clue!'));
+    //                 }
 
-                }
-            }
+    //             }
+    //             else {
 
-        }
-        catch (e) {
-            cb(null, false);
-            cb(new Error('I don\'t have a clue!'));
-        }
-    }
+    //                 cb(null, false);
+    //                 cb(new Error('I don\'t have a clue!'));
+
+    //             }
+    //         }
+
+    //     }
+    //     catch (e) {
+    //         cb(null, false);
+    //         cb(new Error('I don\'t have a clue!'));
+    //     }
+    // }
 
 });
 
@@ -233,7 +244,6 @@ const fileFilter = async (req, file, cb) => {
             const Type = body.Type;
             const coursedestination = await existsCourseWithId(CourseID);
 
-
             if (coursedestination) {
 
                 const newobj = Object.assign({}, {
@@ -241,21 +251,21 @@ const fileFilter = async (req, file, cb) => {
                 });
 
                 var Curriculumdestination = await getAllCurriculumContent(newobj);
-                Curriculumdestination = Object.assign({ ...Curriculumdestination.response }, {});
+                // Curriculumdestination = Object.assign({ ...Curriculumdestination.response }, {});
+                Curriculumdestination = Curriculumdestination.response;
 
-                const foundmodule = Curriculumdestination[0].Modules.find((row, index) => {
-                    if (row.ModuleID === ModuleID) {
+                const foundCurriculum = Curriculumdestination.find((row, index) => {
+                    if (row.CurriculumID === CurriculumID) {
                         return row;
                     }
                     else {
                         return null;
                     }
                 });
+                if (foundCurriculum) {
 
-                if (foundmodule) {
-
-                    const foundlecture = foundmodule.Lectures.find((row, index) => {
-                        if (row.LectureID === LectureID) {
+                    const foundmodule = foundCurriculum.Modules.find((row, index) => {
+                        if (row.ModuleID === ModuleID) {
                             return row;
                         }
                         else {
@@ -263,148 +273,164 @@ const fileFilter = async (req, file, cb) => {
                         }
                     });
 
-                    if (foundlecture && foundlecture.Type === "lecture"
-                        && (foundlecture.Content_Type === "")) {
+                    if (foundmodule) {
 
-                        if (Type === "Video_Content") {
-
-                            var pattern = /video*/;
-                            if (file.mimetype.match(pattern)) {
-
-                                body.foundlecture = foundlecture;
-                                body.CourseID = coursedestination.CourseID;
-                                body.CurriculumID = Curriculumdestination[0].CurriculumID;
-                                body.ModuleID = foundmodule.ModuleID;
-                                body.LectureID = foundlecture.LectureID;
-                                body.Type = Type;
-                                cb(null, true);
-
+                        const foundlecture = foundmodule.Lectures.find((row, index) => {
+                            if (row.LectureID === LectureID) {
+                                return row;
                             }
                             else {
-
-                                body.foundlecture = null;
-                                body.CourseID = 0;
-                                body.CurriculumID = 0;
-                                body.ModuleID = 0;
-                                body.LectureID = 0;
-                                body.Type = "";
-                                cb(null, false);
-                                cb(new Error('Wrong File Type only Videos are allowed!'))
-
+                                return null;
                             }
+                        });
 
-                        }
-                        else if (Type === "Resource_Content") {
-                            if (file.mimetype === "application/pdf") {
-                                body.foundlecture = foundlecture;
-                                body.CourseID = coursedestination.CourseID;
-                                body.CurriculumID = Curriculumdestination[0].CurriculumID;
-                                body.ModuleID = foundmodule.ModuleID;
-                                body.LectureID = foundlecture.LectureID;
-                                body.Type = Type;
-                                cb(null, true);
-                            }
-                            else {
-                                body.foundlecture = null;
-                                body.CourseID = 0;
-                                body.CurriculumID = 0;
-                                body.ModuleID = 0;
-                                body.LectureID = 0;
-                                body.Type = "";
-                                cb(null, false);
-                                cb(new Error('Wrong File Type only PDf are allowed!'))
-                            }
-                        }
-                        else {
-                            cb(null, false);
-                            cb(new Error('I don\'t have a clue the image you provide is Not Accepted!'));
-                        }
+                        if (foundlecture && foundlecture.Type === "lecture"
+                            && (foundlecture.Content_Type === "")) {
 
-                    }
-                    else if (foundlecture && foundlecture.Type === "lecture" &&
-                        (foundlecture.Content_Type !== "")) {
+                            if (Type === "Video_Content") {
 
-                        var video_pattern = /video*/;
-                        var document_pattern = /application*/;
+                                var pattern = /video*/;
+                                if (file.mimetype.match(pattern)) {
 
-                        if (Type === "Video_Content") {
+                                    body.foundlecture = foundlecture;
+                                    body.CourseID = coursedestination.CourseID;
+                                    body.CurriculumID = foundCurriculum.CurriculumID;
+                                    body.ModuleID = foundmodule.ModuleID;
+                                    body.LectureID = foundlecture.LectureID;
+                                    body.Type = Type;
+                                    cb(null, true);
 
-                            const mimetype = file.mimetype.split("/");
-
-                            const find_file_type = PERMITED_VIDEO_FILES.find((row, index) => {
-                                if (mimetype[1] === row) {
-                                    return row;
                                 }
                                 else {
-                                    return null;
-                                }
-                            });
 
-                            if (find_file_type) {
-                                body.foundlecture = foundlecture;
-                                body.CourseID = coursedestination.CourseID;
-                                body.CurriculumID = Curriculumdestination[0].CurriculumID;
-                                body.ModuleID = foundmodule.ModuleID;
-                                body.LectureID = foundlecture.LectureID;
-                                body.Type = Type;
-                                cb(null, true);
+                                    body.foundlecture = null;
+                                    body.CourseID = 0;
+                                    body.CurriculumID = 0;
+                                    body.ModuleID = 0;
+                                    body.LectureID = 0;
+                                    body.Type = "";
+                                    cb(null, false);
+                                    cb(new Error('Wrong File Type only Videos are allowed!'))
+
+                                }
+
+                            }
+                            else if (Type === "Resource_Content") {
+                                if (file.mimetype === "application/pdf") {
+                                    body.foundlecture = foundlecture;
+                                    body.CourseID = coursedestination.CourseID;
+                                    body.CurriculumID = foundCurriculum.CurriculumID;
+                                    body.ModuleID = foundmodule.ModuleID;
+                                    body.LectureID = foundlecture.LectureID;
+                                    body.Type = Type;
+                                    cb(null, true);
+                                }
+                                else {
+                                    body.foundlecture = null;
+                                    body.CourseID = 0;
+                                    body.CurriculumID = 0;
+                                    body.ModuleID = 0;
+                                    body.LectureID = 0;
+                                    body.Type = "";
+                                    cb(null, false);
+                                    cb(new Error('Wrong File Type only PDf are allowed!'))
+                                }
                             }
                             else {
-                                body.foundlecture = null;
-                                body.CourseID = 0;
-                                body.CurriculumID = 0;
-                                body.ModuleID = 0;
-                                body.LectureID = 0;
-                                body.Type = "";
                                 cb(null, false);
-                                cb(new Error('Wrong File Type!'))
+                                cb(new Error('I don\'t have a clue the image you provide is Not Accepted!'));
                             }
 
                         }
-                        else if (Type === "Resource_Content") {
+                        else if (foundlecture && foundlecture.Type === "lecture" &&
+                            (foundlecture.Content_Type !== "")) {
 
-                            const mimetype = file.mimetype.split("/");
+                            var video_pattern = /video*/;
+                            var document_pattern = /application*/;
 
-                            const find_file_type = PERMITED_DOCUMENTS_FILES.find((row, index) => {
-                                if (mimetype[1] === row) {
-                                    return row;
+                            if (Type === "Video_Content") {
+
+                                const mimetype = file.mimetype.split("/");
+
+                                const find_file_type = PERMITED_VIDEO_FILES.find((row, index) => {
+                                    if (mimetype[1] === row) {
+                                        return row;
+                                    }
+                                    else {
+                                        return null;
+                                    }
+                                });
+
+                                if (find_file_type) {
+                                    body.foundlecture = foundlecture;
+                                    body.CourseID = coursedestination.CourseID;
+                                    body.CurriculumID = foundCurriculum.CurriculumID;
+                                    body.ModuleID = foundmodule.ModuleID;
+                                    body.LectureID = foundlecture.LectureID;
+                                    body.Type = Type;
+                                    body.mimetype = file.mimetype;
+                                    cb(null, true);
                                 }
                                 else {
-                                    return null;
+                                    body.foundlecture = null;
+                                    body.CourseID = 0;
+                                    body.CurriculumID = 0;
+                                    body.ModuleID = 0;
+                                    body.LectureID = 0;
+                                    body.Type = "";
+                                    cb(null, false);
+                                    cb(new Error('Wrong File Type!'))
                                 }
-                            });
 
-                            if (find_file_type) {
-                                body.foundlecture = foundlecture;
-                                body.CourseID = coursedestination.CourseID;
-                                body.CurriculumID = Curriculumdestination[0].CurriculumID;
-                                body.ModuleID = foundmodule.ModuleID;
-                                body.LectureID = foundlecture.LectureID;
-                                body.Type = Type;
-                                cb(null, true);
+                            }
+                            else if (Type === "Resource_Content") {
+
+                                const mimetype = file.mimetype.split("/");
+
+                                const find_file_type = PERMITED_DOCUMENTS_FILES.find((row, index) => {
+                                    if (mimetype[1] === row) {
+                                        return row;
+                                    }
+                                    else {
+                                        return null;
+                                    }
+                                });
+
+                                if (find_file_type) {
+                                    body.foundlecture = foundlecture;
+                                    body.CourseID = coursedestination.CourseID;
+                                    body.CurriculumID = foundCurriculum.CurriculumID;
+                                    body.ModuleID = foundmodule.ModuleID;
+                                    body.LectureID = foundlecture.LectureID;
+                                    body.Type = Type;
+                                    cb(null, true);
+                                }
+                                else {
+                                    body.foundlecture = null;
+                                    body.CourseID = 0;
+                                    body.CurriculumID = 0;
+                                    body.ModuleID = 0;
+                                    body.LectureID = 0;
+                                    body.Type = "";
+                                    cb(null, false);
+                                    cb(new Error('Wrong File!'))
+                                }
+
                             }
                             else {
-                                body.foundlecture = null;
-                                body.CourseID = 0;
-                                body.CurriculumID = 0;
-                                body.ModuleID = 0;
-                                body.LectureID = 0;
-                                body.Type = "";
-                                cb(null, false);
-                                cb(new Error('Wrong File!'))
+                                console.log("error Resource_Content");
+                                cb(new Error('I don\'t have a Wrong Type!'));
                             }
 
                         }
                         else {
-                            console.log("error Resource_Content");
-                            cb(new Error('I don\'t have a Wrong Type!'));
+                            cb(new Error('I don\'t have a clue the Lecture filter!'));
                         }
 
                     }
                     else {
-                        cb(new Error('I don\'t have a clue the Lecture filter!'));
+                        cb(new Error('I don\'t have a clue the Module!'));
                     }
-
                 }
                 else {
                     cb(new Error('I don\'t have a clue the Module!'));
@@ -419,7 +445,6 @@ const fileFilter = async (req, file, cb) => {
         else if (path === '/AddCurriculumModuleLectureContentExtraResource') {
 
             const coursedestination = await existsCourseWithId(CourseID);
-
             if (coursedestination) {
 
                 const newobj = Object.assign({}, {
@@ -427,11 +452,11 @@ const fileFilter = async (req, file, cb) => {
                 });
 
                 var Curriculumdestination = await getAllCurriculumContent(newobj);
+                // Curriculumdestination = Object.assign({ ...Curriculumdestination.response }, {});
+                Curriculumdestination = Curriculumdestination.response;
 
-                Curriculumdestination = Object.assign({ ...Curriculumdestination.response }, {});
-
-                const foundmodule = Curriculumdestination[0].Modules.find((row, index) => {
-                    if (row.ModuleID === ModuleID) {
+                const foundCurriculum = Curriculumdestination.find((row, index) => {
+                    if (row.CurriculumID === CurriculumID) {
                         return row;
                     }
                     else {
@@ -439,10 +464,10 @@ const fileFilter = async (req, file, cb) => {
                     }
                 });
 
-                if (foundmodule) {
+                if (foundCurriculum) {
 
-                    const foundlecture = foundmodule.Lectures.find((row, index) => {
-                        if (row.LectureID === LectureID) {
+                    const foundmodule = foundCurriculum.Modules.find((row, index) => {
+                        if (row.ModuleID === ModuleID) {
                             return row;
                         }
                         else {
@@ -450,12 +475,10 @@ const fileFilter = async (req, file, cb) => {
                         }
                     });
 
-                    if (foundlecture && foundlecture.Type === "lecture") {
+                    if (foundmodule) {
 
-                        const mimetype = file.mimetype.split("/");
-
-                        const find_file_type = PERMITED_RESOURCE_DOCUMENTS_FILES.find((row, index) => {
-                            if (mimetype[1] === row) {
+                        const foundlecture = foundmodule.Lectures.find((row, index) => {
+                            if (row.LectureID === LectureID) {
                                 return row;
                             }
                             else {
@@ -463,32 +486,50 @@ const fileFilter = async (req, file, cb) => {
                             }
                         });
 
-                        if (find_file_type) {
+                        if (foundlecture && foundlecture.Type === "lecture") {
 
-                            body.foundlecture = foundlecture;
-                            body.CourseID = coursedestination.CourseID;
-                            body.CurriculumID = Curriculumdestination[0].CurriculumID;
-                            body.ModuleID = foundmodule.ModuleID;
-                            body.LectureID = foundlecture.LectureID;
-                            cb(null, true);
+                            const mimetype = file.mimetype.split("/");
+
+                            const find_file_type = PERMITED_RESOURCE_DOCUMENTS_FILES.find((row, index) => {
+                                if (mimetype[1] === row) {
+                                    return row;
+                                }
+                                else {
+                                    return null;
+                                }
+                            });
+
+                            if (find_file_type) {
+
+                                body.foundlecture = foundlecture;
+                                body.CourseID = coursedestination.CourseID;
+                                body.CurriculumID = foundCurriculum.CurriculumID;
+                                body.ModuleID = foundmodule.ModuleID;
+                                body.LectureID = foundlecture.LectureID;
+                                cb(null, true);
+
+                            }
+                            else {
+
+                                cb(null, false);
+                                cb(new Error('I don\'t have a clue the Extra Resources you provide is Not Accepted!'));
+
+                            }
 
                         }
                         else {
 
-                            cb(null, false);
-                            cb(new Error('I don\'t have a clue the Extra Resources you provide is Not Accepted!'));
+                            cb(new Error('I don\'t have a clue the Lecture filter!'));
 
                         }
 
                     }
                     else {
 
-                        cb(new Error('I don\'t have a clue the Lecture filter!'));
+                        cb(new Error('I don\'t have a clue the Module!'));
 
                     }
-
-                }
-                else {
+                } else {
 
                     cb(new Error('I don\'t have a clue the Module!'));
 
@@ -496,17 +537,13 @@ const fileFilter = async (req, file, cb) => {
 
             }
             else {
-
                 cb(new Error('I don\'t have a clue the Course!'));
-
             }
 
         }
         else {
-
             cb(null, false);
             cb(new Error('I don\'t have a clue!'));
-
         }
 
     } catch (error) {
@@ -514,6 +551,19 @@ const fileFilter = async (req, file, cb) => {
     }
 
 };
+
+// uploads a file to s3
+// const uploadFile = (file) => {
+//     const fileStream = fs.createReadStream(file.path)
+
+//     const uploadParams = {
+//         Bucket: bucketName,
+//         Body: fileStream,
+//         Key: `101/${name}`
+//     }
+
+//     return s3.upload(uploadParams).promise()
+// }
 
 const upload = multer({ storage: storage, fileFilter });
 
@@ -530,6 +580,7 @@ NewCurriculumRouter.post("/EditCurriculumModuleLectureItem", httpEditCurriculumM
 NewCurriculumRouter.post("/EditCurriculumModuleLectureIndex", httpEditCurriculumModuleLectureIndex);
 NewCurriculumRouter.post("/AddCurriculumModuleLectureContent", httpAddCurriculumModuleLectureContent);
 NewCurriculumRouter.get("/StreamCurriculumModuleLectureContent/:CourseID/:CurriculumID/:ModuleID/:LectureID", httpStreamCurriculumModuleLectureContent);
+NewCurriculumRouter.post("/StreamCurriculumModuleLectureVideoContent", httpStreamCurriculumModuleLectureVideoContent);
 NewCurriculumRouter.post("/StreamCurriculumModuleLectureContent", httpStreamCurriculumModuleLectureContent);
 
 NewCurriculumRouter.post("/AddCurriculumModuleLectureContentExtraResource", httpAddCurriculumModuleLectureContentExtraResource);
@@ -540,3 +591,4 @@ NewCurriculumRouter.post("/EdiCurriculumModuleQuestionItem", httpEditCurriculumM
 NewCurriculumRouter.post("/EditNewCurriculumModuleQuestionItemContent", httpEditNewCurriculumModuleQuestionItemContent);
 
 module.exports = NewCurriculumRouter;
+

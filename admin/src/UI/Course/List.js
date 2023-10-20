@@ -19,6 +19,7 @@ import { useTheme } from '@mui/material/styles';
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import useMediaQuery from '@mui/material/useMediaQuery';
+import LanguageIcon from '@mui/icons-material/Language';
 import { GetAllCourses, GetAllLanguages } from "../../Hooks/request";
 import placeholder from "./placeholder.jpg";
 
@@ -330,8 +331,8 @@ export default function ListCourse({ setAuthor }) {
 
                                 <Box sx={{ ml: "auto" }}>
 
-                                    <Button variant="outlined" color="firr" sx={{ marginRight: "1em" }} onClick={(event) => { settableView(false) }} ><GridOnOutlinedIcon></GridOnOutlinedIcon></Button>
-                                    <Button variant="outlined" color="firr" sx={{ marginRight: "1em" }} onClick={(event) => { setopenLanguageDialog(true) }} ><ReorderOutlinedIcon></ReorderOutlinedIcon></Button>
+                                    <Button variant="outlined" color="firr" sx={{ marginRight: "1em" }} onClick={(event) => { settableView(false) }} ><ReorderOutlinedIcon></ReorderOutlinedIcon></Button>
+                                    <Button variant="outlined" color="firr" sx={{ marginRight: "1em" }} onClick={(event) => { setopenLanguageDialog(true) }} ><LanguageIcon></LanguageIcon></Button>
 
                                 </Box>
 
@@ -417,7 +418,6 @@ export default function ListCourse({ setAuthor }) {
 
                                     {!matchesMD && <Box height="414px" sx={{}}>
                                         <Card
-
                                             height="316px"
                                             sx={{
                                                 // minWidth: "502px", maxWidth: "652px",
@@ -468,7 +468,6 @@ export default function ListCourse({ setAuthor }) {
 
                                         </Card>
                                     </Box>}
-
 
                                 </Grid>
 

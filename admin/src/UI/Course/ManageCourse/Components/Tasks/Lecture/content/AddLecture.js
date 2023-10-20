@@ -10,7 +10,7 @@ import { AddNewCurriculumModuleLectureItem } from '../../../../../../../Hooks/re
 
 export default function AddLecture(props) {
 
-    const { items, CourseID, CurriculumID, ModuleID, setreload, reload } = props;
+    const { items, CourseID, CurriculumID, ModuleID, setreload, reload, setCurriculum } = props;
     const [showmore, setshowmore] = React.useState(false);
     const [Addlecture, setAddlecture] = React.useState(false);
     const [AddLectureTitle, setAddLectureTitle] = React.useState("");
@@ -114,12 +114,11 @@ export default function AddLecture(props) {
 
             try {
 
-                console.log({ newobj });
-
                 const response = await AddNewCurriculumModuleLectureItem(newobj);
 
                 if (response.done) {
-                    setreload(!reload);
+                    // setreload(!reload);
+                    setCurriculum(response.Curriculum);
                     setAddlecture(false);
                     setAddquiz(false);
                     setshowmore(false);
@@ -156,7 +155,8 @@ export default function AddLecture(props) {
                 const response = await AddNewCurriculumModuleLectureItem(newobj);
 
                 if (response.done) {
-                    setreload(!reload);
+                    // setreload(!reload);
+                    setCurriculum(response.Curriculum);
                     setAddlecture(false);
                     setAddquiz(false);
                     setshowmore(false);

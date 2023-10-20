@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useParams, useLocation } from 'react-router-dom';
 import theme from './UI/Theme';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -14,7 +14,8 @@ import ListCourse from "./UI/Course/List";
 import EditCourse from "./UI/Course/Edit";
 
 import Price_tier_Add from "./UI/Price_Tier/Add";
-import List_Price_Tiers from "./UI/Price_Tier/List";
+
+
 
 import ManageCourse from "./UI/Course/ManageCourse/Manage";
 import Curriculum from "./UI/Course/ManageCourse/Routes/Curriculum";
@@ -28,7 +29,6 @@ function App() {
 
   const [opendrawer, setopendrawer] = React.useState(true);
 
-  // const theme = useTheme();
   const matchesMD = useMediaQuery(theme.breakpoints.down('md'));
 
   return (
@@ -41,10 +41,11 @@ function App() {
             marginTop: "4.5em",
             flexGrow: 1,
             bgcolor: 'background.default',
-            paddingLeft: matchesMD ? "0em" : "18.5em",
+            paddingLeft: matchesMD ? "0em" : opendrawer ? "18.5em" : "0em",
 
           }}
         >
+
           <Routes>
 
             <Route path="/course/edit/:courseID"
@@ -150,9 +151,23 @@ function App() {
             <Route exact path="/Revolution" element={<div>The Revolution</div>}></Route>
 
             <Route exact path="/Price_tier/add" element={<Price_tier_Add></Price_tier_Add>}></Route>
-            <Route exact path="/Price_tier/list" element={<List_Price_Tiers></List_Price_Tiers>}></Route>
+
+            <Route path="/Class_Room/:courseID/:CurriculumID/:ModuleID/:LectureID/"
+              // loader={({ params }) => {
+              //   setopendrawer(false);
+              //   console.log({ params });
+              //   // params.courseID;
+
+              // }}
+              // action={({ params }) => {
+              //   console.log({ params });
+              //   setopendrawer(false);
+              //   // params.courseID;
+              // }}
+              element={<Typography>Class_Room</Typography>}></Route>
 
           </Routes>
+
         </Box>
         {/* <Footer></Footer> */}
       </Router>
@@ -161,3 +176,6 @@ function App() {
 }
 
 export default App;
+
+
+

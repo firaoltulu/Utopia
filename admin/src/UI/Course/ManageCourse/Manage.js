@@ -1,130 +1,13 @@
-import * as React from "react";
-import { Route, Router, Routes, useParams, Link } from 'react-router-dom';
-import { Outlet } from "react-router-dom";
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { styled } from "@mui/material/styles";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell, { tableCellClasses } from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import { AppBar, ButtonBase, CardMedia, Divider, Drawer, Grid, Toolbar } from "@mui/material";
-import {
-    Box, Button, Card, CardActions,
-    CardContent, CardHeader, IconButton,
-    List, ListItem, ListItemText, Tab, Typography, ListItemButton
-} from "@mui/material";
-import EditIcon from '@mui/icons-material/Edit';
-import PersonIcon from '@mui/icons-material/Person';
-import { alpha } from "@mui/material";
-import { useTheme } from '@mui/material/styles';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import LanguageIcon from '@mui/icons-material/Language';
 import MenuIcon from '@mui/icons-material/Menu';
+import { AppBar, Box, Button, ButtonBase, Dialog, DialogContent, DialogTitle, Divider, Drawer, Grid, List, ListItem, ListItemButton, ListItemText, Toolbar, Typography } from "@mui/material";
+import { styled, useTheme } from "@mui/material/styles";
+import useMediaQuery from '@mui/material/useMediaQuery';
+import * as React from "react";
+import { Link, Outlet, useParams } from 'react-router-dom';
+import { GetAllLanguages } from '../../../Hooks/request';
 
-
-const Languages = [
-    { languageID: "2", titleEnglish: "Amharic", title: "አማርኛ", addedDate: "2022/22/2" },
-    { languageID: "1", titleEnglish: "English", title: "English", addedDate: "2022/22/2" },
-    { languageID: "3", titleEnglish: "Oromifa", title: "Oromifa", addedDate: "2022/22/2" },
-    { languageID: "4", titleEnglish: "Tigrna", title: "ትግረኛ", addedDate: "2022/22/2" },
-];
-
-const Level = [
-    { levelID: "1", title: ["Beginner", "ጀማሪ", "", ""] },
-    { levelID: "2", title: ["Intermediate", "መካከለኛ", "", ""] },
-    { levelID: "3", title: ["senior", "ከፍተኛ", "", ""] },
-
-];
-
-const course = {
-
-    Titles: [
-        {
-            title: "Python Programmming",
-            languageID: "1"
-        },
-        {
-            title: "Python Programmming",
-            languageID: "2"
-        },
-        {
-            title: "Python Programmming",
-            languageID: "3"
-        },
-        {
-            title: "Python Programmming",
-            languageID: "4"
-        }
-    ],
-    Discriptions: [
-        {
-            discription: "Discriptionnnnnnnnnnnnnnnn",
-            languageID: "1"
-        },
-        {
-            discription: "Discriptionnnnnnnnnnnnnnnn",
-            languageID: "2"
-        },
-        {
-            discription: "Discriptionnnnnnnnnnnnnnnn",
-            languageID: "3"
-        },
-        {
-            discription: "Discriptionnnnnnnnnnnnnnnn",
-            languageID: "4"
-        }
-    ],
-    Goals: [
-        {
-            goals: "goalssssssssssssss",
-            languageID: "1"
-        },
-        {
-            goals: "goalssssssssssssss",
-            languageID: "2"
-        },
-        {
-            goals: "goalssssssssssssss",
-            languageID: "3"
-        },
-        {
-            goals: "goalssssssssssssss",
-            languageID: "4"
-        }
-    ],
-    Lecturers: [
-        {
-            lecturerName: "firaol tulu",
-            lecturerTitle: "Junior Developer",
-            languageID: "1"
-        },
-        {
-            lecturerName: "firaol tulu",
-            lecturerTitle: "Junior Developer",
-            languageID: "2"
-        },
-        {
-            lecturerName: "firaol tulu",
-            lecturerTitle: "Junior Developer",
-            languageID: "3"
-        },
-        {
-            lecturerName: "firaol tulu",
-            lecturerTitle: "Junior Developer",
-            languageID: "4"
-        }
-    ],
-    courselanguage: "2",
-    courselevel: "3",
-    Image1: {},
-    Image2: {},
-    Image3: {},
-    Image4: {}
-};
 
 const ImageButton = styled(ButtonBase)(({ theme }) => ({
     position: 'relative',
@@ -175,6 +58,7 @@ export default function ManageCourse(props) {
     const theme = useTheme();
 
 
+    const [Languages, setLanguages] = React.useState([]);
 
     const matchesMD = useMediaQuery(theme.breakpoints.down('md'));
     const [opendrawer, setopendrawer] = React.useState(false);
@@ -185,7 +69,40 @@ export default function ManageCourse(props) {
 
     React.useEffect(() => {
 
+        const get = async () => {
+            var newobj = await GetAllLanguages();
+            if (newobj.done) {
+                if (newobj.fetcheddata.data.Languages.length > 0) {
+                    var locarr = [];
+
+                    newobj.fetcheddata.data.Languages.map((row, index) => {
+
+                        var locobj = Object.assign({}, {
+                            languageID: row.LanguageID,
+                            titleEnglish: row.EnglishTitle,
+                            title: row.Title,
+                            addedDate: row.AddedDate,
+                        });
+
+
+                        locarr.push(locobj);
+                    });
+
+
+                    setLanguages(locarr);
+                }
+            }
+            else {
+            }
+
+        }
+        get();
     }, []);
+
+    React.useEffect(() => {
+
+    })
+
 
     const handleListCardHeader = (event, index) => {
         setAnchorElcoursemenu(event.currentTarget);
@@ -205,6 +122,7 @@ export default function ManageCourse(props) {
         setopendrawer(false);
     }
 
+
     return (
 
         <React.Fragment>
@@ -213,12 +131,16 @@ export default function ManageCourse(props) {
             {<AppBar elevation={0} sx={{ borderBottom: "1px solid", padding: "1em", zIndex: theme.zIndex.drawer + 1 }} >
 
                 <Toolbar disableGutters sx={{}}>
-                    <Button color="firr" component={Link} to="/course/list" startIcon={<ArrowBackIosNewIcon></ArrowBackIosNewIcon>}>Back to List</Button>
+                    <Button color="firr" sx={{ marginRight: "3em" }} component={Link} to="/course/list" startIcon={<ArrowBackIosNewIcon></ArrowBackIosNewIcon>}>Back to List</Button>
+
+
+
+
                 </Toolbar>
 
             </AppBar>}
 
-            <Grid container sx={{minWidth: "542px",}}>
+            <Grid container sx={{ minWidth: "542px", }}>
                 {matchesMD && <Grid item xs={12} md={12} sx={{ marginLeft: "1em", marginBottom: "1em", marginTop: "1em" }}>
 
                     <Button
@@ -265,15 +187,15 @@ export default function ManageCourse(props) {
                             </Grid>
 
                             <Grid item xs={12} sx={{ marginBottom: "0.7em" }}>
-                                <ImageButton color="firr2" size="large" fullWidth component={Link} to="goals" onClick={(event) => { handledrawerclose(event) }}>Intended Learners</ImageButton>
+                                <Button color="firr2" size="large" fullWidth component={Link} to="goals" onClick={(event) => { handledrawerclose(event) }}>Intended Learners</Button>
                             </Grid>
 
                             <Grid item xs={12} sx={{ marginBottom: "0.7em" }}>
-                                <ImageButton color="firr2" size="large" fullWidth component={Link} to="course-structure" onClick={(event) => { handledrawerclose(event) }}>Course Sturcture</ImageButton>
+                                <Button color="firr2" size="large" fullWidth component={Link} to="course-structure" onClick={(event) => { handledrawerclose(event) }}>Course Sturcture</Button>
                             </Grid>
 
                             <Grid item xs={12} sx={{ marginBottom: "0.7em" }}>
-                                <ImageButton color="firr2" size="large" fullWidth component={Link} to="setup" onClick={(event) => { handledrawerclose(event) }}>Setup & Test Video</ImageButton>
+                                <Button color="firr2" size="large" fullWidth component={Link} to="setup" onClick={(event) => { handledrawerclose(event) }}>Setup & Test Video</Button>
                             </Grid>
 
                         </Grid>
@@ -341,17 +263,15 @@ export default function ManageCourse(props) {
 
 
                             <Grid item xs={12} sx={{ marginBottom: "0.7em", textDecoration: "none", color: "black" }}>
-                                <ImageButton focusRipple component={Link} to="basics" onClick={(event) => { handledrawerclose(event) }}>Course Landing Page</ImageButton>
-                                {/* <Typography variant="subtitle1" sx={{ padding: "1em" }}>Course Landing Page</Typography> */}
-                                {/* <Button color="firr2" size="large" fullWidth component={Link} to="basics" onClick={(event) => { handledrawerclose(event) }}><Typography variant="subtitle1" sx={{}}>Course Landing Page</Typography></Button> */}
+                                <Button fullWidth component={Link} to="basics" onClick={(event) => { handledrawerclose(event) }}>Course Landing Page</Button>
                             </Grid>
 
                             <Grid item xs={12} sx={{ marginBottom: "0.7em" }}>
-                                <ImageButton focusRipple color="firr2" size="large" component={Link} to="pricing" onClick={(event) => { handledrawerclose(event) }}>Pricing</ImageButton>
+                                <Button fullWidth color="firr2"  component={Link} to="pricing" onClick={(event) => { handledrawerclose(event) }}>Pricing</Button>
                             </Grid>
 
                             <Grid item xs={12} sx={{ marginBottom: "0.7em" }}>
-                                <ImageButton color="firr2" size="large" component={Link} to="messages" onClick={(event) => { handledrawerclose(event) }}>Course Message</ImageButton>
+                                <Button fullWidth color="firr2" size="large" component={Link} to="messages" onClick={(event) => { handledrawerclose(event) }}>Course Message</Button>
                             </Grid>
 
                         </Grid>

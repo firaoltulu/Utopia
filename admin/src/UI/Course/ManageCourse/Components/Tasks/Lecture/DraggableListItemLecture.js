@@ -14,7 +14,7 @@ import {
 } from 'react-beautiful-dnd';
 import AddContent from './content/AddContent';
 import AddQuiz from './Quiz/AddQuiz';
-import EditLecture from './EditLecture';
+import EditLecture from './content/EditLecture';
 import PreviewContent from './content/PreviewContent';
 import PreviewQuiz from './Quiz/PreviewQuiz';
 
@@ -44,7 +44,7 @@ const getItemHiddenStyle = (isDragging, draggableStyle) => ({
 
 export default function DraggableListItemLecture(props) {
 
-    const { item, index, ModuleID, reload, CourseID, CurriculumID, setreload } = props;
+    const { item, index, ModuleID, reload, CourseID, CurriculumID, setreload, setCurriculum } = props;
 
     const [addcontentdraw, setaddcontentdraw] = React.useState(false);
     const [editdraw, seteditdraw] = React.useState(false);
@@ -307,6 +307,7 @@ export default function DraggableListItemLecture(props) {
                                                         CurriculumID={CurriculumID}
                                                         ModuleID={ModuleID}
                                                         item={item}
+                                                        setCurriculum={setCurriculum}
                                                         reload={reload}
                                                         setreload={setreload}
                                                         addcontentdraw={addcontentdraw}
@@ -328,6 +329,7 @@ export default function DraggableListItemLecture(props) {
                                                         CourseID={CourseID}
                                                         CurriculumID={CurriculumID}
                                                         ModuleID={ModuleID}
+                                                        setCurriculum={setCurriculum}
                                                         reload={reload}
                                                         setreload={setreload}
                                                         HandleClose={HandleClose}
@@ -357,6 +359,7 @@ export default function DraggableListItemLecture(props) {
                                                         CourseID={CourseID}
                                                         CurriculumID={CurriculumID}
                                                         ModuleID={ModuleID}
+                                                        setCurriculum={setCurriculum}
                                                         reload={reload}
                                                         setreload={setreload}
                                                     >
@@ -384,8 +387,9 @@ export default function DraggableListItemLecture(props) {
                                                     CourseID={CourseID}
                                                     CurriculumID={CurriculumID}
                                                     ModuleID={ModuleID}
-                                                    reload={reload}
-                                                    setreload={setreload}>
+                                                    setCurriculum={setCurriculum}
+                                                    reload={null}
+                                                    setreload={null}>
                                                 </AddQuiz>
 
                                             </Grid>

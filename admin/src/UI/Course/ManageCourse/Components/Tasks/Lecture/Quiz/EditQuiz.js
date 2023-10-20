@@ -180,6 +180,7 @@ export default function EditQuiz(props) {
                     });
                     setdisabled(true);
                     setopenSaveLoadDialog(true);
+
                     const response = await EditNewCurriculumModuleQuestionItemContent(newobj);
 
                     if (response.done) {
@@ -457,7 +458,7 @@ export default function EditQuiz(props) {
                     <FacebookCircularProgress />
                 </DialogContent>
             </Dialog> */}
-            s
+            
             <Snackbar open={Answerserrorsnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
                 <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
                     Write up to 15 possible answers and indicate which one is the best.

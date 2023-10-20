@@ -15,7 +15,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import { styled, useTheme } from '@mui/material/styles';
 import * as React from "react";
-import { GetAllPrice_Tiers, EditLanguage, httpAbortLanguage } from "../../Hooks/request";
+import { GetAllPrice_Tiers, EditPrice_Tier, httpAbortLanguage } from "../../Hooks/request";
 import { Form } from 'react-router-dom';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -76,11 +76,10 @@ function ListDialogTitle(props) {
     );
 };
 
-export default function List_Price_Tiers({ currencies, price_tiers }) {
+export default function List_Price_Tiers({ currencies, price_tiers, setprice_tiers }) {
 
-    // const [price_tiers, setprice_tiers] = React.useState([]);
 
-    const [SelectCurrency, setSelectCurrency] = React.useState("");
+    const [SelectCurrency, setSelectCurrency] = React.useState("0");
     const [foundcurrency, setfoundcurrency] = React.useState({});
 
 
@@ -104,33 +103,15 @@ export default function List_Price_Tiers({ currencies, price_tiers }) {
     const [snackbaropen, setsnackbaropen] = React.useState(false);
     const [errorsnackbaropen, seterrorsnackbaropen] = React.useState(false);
 
+    const [errorresponceonesnackbaropen, seterrorresponceonesnackbaropen] = React.useState(false);
+    const [errorresponcetwosnackbaropen, seterrorresponcetwosnackbaropen] = React.useState(false);
+    const [errorresponcethreesnackbaropen, seterrorresponcethreesnackbaropen] = React.useState(false);
+    const [errorresponcefoursnackbaropen, seterrorresponcefoursnackbaropen] = React.useState(false);
+    const [errorresponcefivesnackbaropen, seterrorresponcefivesnackbaropen] = React.useState(false);
+    const [errorresponcesixsnackbaropen, seterrorresponcesixsnackbaropen] = React.useState(false);
+
+
     const theme = useTheme();
-
-    // React.useEffect(() => {
-    //     const get = async () => {
-
-    //         try {
-
-    //             const price_tiers = await GetAllPrice_Tiers();
-    //             if (price_tiers.done) {
-    //                 setprice_tiers(price_tiers.fetcheddata);
-    //             }
-    //             else {
-
-    //             }
-
-    //         } catch (error) {
-
-
-    //         }
-
-    //     }
-
-    //     get();
-
-
-
-    // }, [reload]);
 
     React.useEffect(() => {
 
@@ -201,8 +182,6 @@ export default function List_Price_Tiers({ currencies, price_tiers }) {
 
 
     }, [Price_Tier_ID]);
-
-    // console.log({ price_tiers });
 
 
     const handleEdit = async (event, Min_Price_Tier, Max_Price_Tier, Price_Tier_ID) => {
@@ -293,27 +272,87 @@ export default function List_Price_Tiers({ currencies, price_tiers }) {
     };
 
     const handleSubmit = async (event) => {
+
         event.preventDefault();
 
-        if (title !== "" && titleenglish !== "" && LanguageID > 0) {
+        if (Min_Price_Tier !== "" && Max_Price_Tier !== "" && Price_Tier_ID > 0) {
 
-            const newobj = Object.assign({}, {
-                title: title,
-                titleenglish: titleenglish
-            });
-            const result = await EditLanguage(LanguageID, newobj);
-            if (result.done) {
+            var max = parseFloat(Max_Price_Tier, 2);
+            var min = parseFloat(Min_Price_Tier, 2);
 
-                handleEditClose();
-                setsnackbaropen(true);
-                setreload(!reload);
-            } else {
-                seterrorsnackbaropen(true);
+            if (max > min) {
+
+                const foundcurrency = currencies.find((row, index) => {
+                    if (row.Currency_ID === SelectCurrency) {
+                        return row;
+                    }
+                    else {
+                        return null;
+                    }
+                });
+
+                if (foundcurrency) {
+
+                    const newobj = Object.assign({}, {
+                        minprice_tier: min,
+                        maxprice_tier: max,
+                        Price_Tier_ID: Price_Tier_ID,
+                    });
+
+                    const responce = await EditPrice_Tier(newobj);
+
+                    if (responce.done) {
+
+                        setMax_Price_Tier(0);
+                        setMin_Price_Tier(0);
+                        setsnackbaropen(true);
+                        setprice_tiers(responce.result);
+                        setOpenEdit(false);
+
+                    }
+                    else {
+
+                        if (responce.reason === 1) {
+                            seterrorresponceonesnackbaropen(true);
+                        }
+                        else if (responce.reason === 2) {
+                            seterrorresponcetwosnackbaropen(true);
+
+                        }
+                        else if (responce.reason === 3) {
+                            seterrorresponcethreesnackbaropen(true);
+
+                        }
+                        else if (responce.reason === 4) {
+                            seterrorresponcefoursnackbaropen(true);
+
+                        }
+                        else if (responce.reason === 5) {
+                            seterrorresponcefivesnackbaropen(true);
+
+                        }
+                        else if (responce.reason === 6) {
+                            seterrorresponcesixsnackbaropen(true);
+                        }
+                        else {
+                            seterrorsnackbaropen(true);
+                        }
+
+                    }
+
+                }
+                else {
+                    // seterrorthreesnackbaropen(true);
+                }
             }
+
+
 
         }
         else {
+
             handleEditClose();
+
         }
 
     };
@@ -359,7 +398,7 @@ export default function List_Price_Tiers({ currencies, price_tiers }) {
 
             <Grid container sx={{ marginBottom: "8em" }}>
 
-                <Grid item xs={12} md={12}>
+                <Grid item xs={12} md={12} sx={{ marginBottom: "1em" }}>
                     <TextField
                         select
                         fullWidth
@@ -371,7 +410,7 @@ export default function List_Price_Tiers({ currencies, price_tiers }) {
                         label="Currency"
                         defaultValue="1"
                         sx={{ marginTop: "1em" }}
-                        helperText="Please select Select Currency"
+                        // helperText="Please select Select Currency"
                         variant="outlined"
                         value={SelectCurrency}
                     >
@@ -428,16 +467,12 @@ export default function List_Price_Tiers({ currencies, price_tiers }) {
                     </TableContainer>
                 </Grid>
 
-
-
             </Grid>
 
             <ListDialog
-
                 onClose={handleEditClose}
                 aria-labelledby="Edit-dialog-title"
                 open={openEdit}
-
             >
 
                 <ListDialogTitle id="Edit-dialog-title" onClose={handleEditClose}>
@@ -531,15 +566,55 @@ export default function List_Price_Tiers({ currencies, price_tiers }) {
 
             <Snackbar open={snackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
                 <Alert onClose={handlesnackClose} severity="success" sx={{ width: '100%' }}>
-                    You have successfully Deleted a Language!
+                    You have successfully Edited a Price Tier!
                 </Alert>
             </Snackbar>
 
             <Snackbar open={errorsnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
                 <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
-                    SomeThing went wrong Please Try Again!!
+                    Course with that id couldnt be found!!
                 </Alert>
             </Snackbar>
+
+
+            <Box>
+                <Snackbar open={errorresponceonesnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
+                    <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
+                        error number 1
+                    </Alert>
+                </Snackbar>
+
+                <Snackbar open={errorresponcetwosnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
+                    <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
+                        error number 2
+                    </Alert>
+                </Snackbar>
+
+                <Snackbar open={errorresponcethreesnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
+                    <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
+                        error number 3
+                    </Alert>
+                </Snackbar>
+
+                <Snackbar open={errorresponcefoursnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
+                    <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
+                        error number 4
+                    </Alert>
+                </Snackbar>
+
+
+                <Snackbar open={errorresponcefivesnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
+                    <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
+                        error number 5
+                    </Alert>
+                </Snackbar>
+
+                <Snackbar open={errorresponcesixsnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
+                    <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
+                        error number 6
+                    </Alert>
+                </Snackbar>
+            </Box>
 
         </React.Fragment >
 

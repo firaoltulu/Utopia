@@ -51,7 +51,7 @@ function CircularProgressWithLabel(props) {
 
 
 export default function AddContent(props) {
-    const { item, CourseID, CurriculumID, ModuleID,
+    const { item, CourseID, CurriculumID, ModuleID, setCurriculum,
         reload, setreload, addcontentdraw, setaddcontentdraw } = props;
 
     const [videofile, setvideoFile] = React.useState(null);
@@ -86,7 +86,7 @@ export default function AddContent(props) {
         var pattern = /video*/;
         console.log({ newFile });
         if (newFile.type.match(pattern) && newFile.size <= 4000000000) {
-        
+
             const newobj = Object.assign({}, {
                 LectureID: item.LectureID,
                 CourseID: CourseID,
@@ -97,12 +97,14 @@ export default function AddContent(props) {
                 setUploadprogress
             });
 
+            console.log({ newobj });
+
             setvideoFile(newFile);
 
             HttpAddCurriculumModuleLectureItemContent(newobj).then((response) => {
                 if (response.done) {
-
-                    setreload(!reload);
+                    setCurriculum(response.Curriculum);
+                    // setreload(!reload);
                     setsnackbaropen(true);
                     setvideoFile(null);
                     setaddcontentdraw(!addcontentdraw);
@@ -142,8 +144,8 @@ export default function AddContent(props) {
             setdocumentfile(newFile);
             HttpAddCurriculumModuleLectureItemContent(newobj).then((response) => {
                 if (response.done) {
-
-                    setreload(!reload);
+                    setCurriculum(response.Curriculum);
+                    // setreload(!reload);
                     setsnackbaropen(true);
                     setdocumentfile(null);
                     setaddcontentdraw(!addcontentdraw);
@@ -182,7 +184,7 @@ export default function AddContent(props) {
         seterrorsnackbaropen(false);
         seterrorfilesnackbaropen(false);
     };
-    
+
 
     return (
 

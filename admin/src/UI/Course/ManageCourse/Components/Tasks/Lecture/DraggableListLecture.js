@@ -19,15 +19,14 @@ const getListStyle = isDraggingOver => ({
 
 export default function DraggableListLecture(props) {
 
-    const { items, CourseID, CurriculumID, ModuleID, setreload, reload, LectureID } = props;
+    const { items, CourseID, CurriculumID, ModuleID, selectlanguage, setreload, reload, LectureID, setCurriculum } = props;
 
     const [lecture, setlecture] = React.useState([]);
-    // const [reload, setreload] = React.useState(true);
+
 
     const [snackbaropen, setsnackbaropen] = React.useState(false);
     const [errorsnackbaropen, seterrorsnackbaropen] = React.useState(false);
 
-    // console.log({ items });
 
     React.useEffect(() => {
         if (items.length > 0) {
@@ -72,7 +71,7 @@ export default function DraggableListLecture(props) {
 
             });
 
-            console.log({ newobj });
+            // console.log({ newobj });
 
             setlecture(item);
 
@@ -80,7 +79,8 @@ export default function DraggableListLecture(props) {
 
             if (response.done) {
 
-                setreload(!reload);
+                setCurriculum(response.Curriculum);
+                // setreload(!reload);
                 seterrorsnackbaropen(false);
                 setsnackbaropen(true);
 
@@ -125,6 +125,7 @@ export default function DraggableListLecture(props) {
                                         CourseID={CourseID}
                                         CurriculumID={CurriculumID}
                                         ModuleID={ModuleID}
+                                        setCurriculum={setCurriculum}
                                         setreload={setreload} key={`droppable-list-lecture-${index}`} />
                                 ))}
                                 {provided.placeholder}
@@ -141,7 +142,8 @@ export default function DraggableListLecture(props) {
                 CurriculumID={CurriculumID}
                 ModuleID={ModuleID}
                 reload={reload}
-                setreload={setreload}>
+                setreload={setreload}
+                setCurriculum={setCurriculum}>
             </AddLecture>
 
 

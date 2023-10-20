@@ -171,7 +171,7 @@ async function httpAddNewPrice_Tier(req, res) {
         return res.status(400).json({ message: "Required fields not specfied", reason: 4 });
     }
 
-}
+};
 
 async function httpGetAllPrice_Tiers(req, res) {
 
@@ -187,44 +187,164 @@ async function httpGetAllPrice_Tiers(req, res) {
         return res.status(400).json({ message: "Required fields not specfied" });
     }
 
-}
+};
 
 async function httpEditPrice_Tiers(req, res) {
 
     try {
-        const body = req.body;
-        console.log({ body });
-        // if (body.title !== "" && body.titleenglish !== "" && body.LanguageID !== 0) {
-        //     const language = await existsLanguageWithId(body.LanguageID);
 
-        //     if (language) {
-        //         const newLaunch = Object.assign({}, {
-        //             Title: body.title,
-        //             EnglishTitle: body.titleenglish,
-        //         });
+        const locbody = req.body;
+        const body = JSON.parse(locbody.Price_Tier);
 
-        //         const editlanguage = await EditLanguageById(language.LanguageID, newLaunch);
-        //         if (editlanguage.done) {
-        //             console.log("updated successfully");
-        //             return res.status(200).json({ done: true });
-        //         } else {
-        //             return res.status(400).json({ done: false });
-        //         }
 
-        //     }
-        //     else {
-        //         return res.status(400).json({ done: false, message: "language with the id havnt been found..." });
-        //     }
-        // }
-        // else {
-        //     return res.status(400).json({ done: false, message: "Both title should not be Null..." });
-        // }
+        if (body.minprice_tier > 0 && body.maxprice_tier > 0 &&
+            body.Price_Tier_ID > 0 && body.maxprice_tier > body.minprice_tier) {
+
+            const price_tiers = await existsPrice_TierWithId(body.Price_Tier_ID);
+
+            if (price_tiers) {
+
+                const allprice_tiers = await getAllPrice_Tier();
+
+                const ordered_arr = allprice_tiers.sort((rowx, rowy) => {
+                    if (rowx.Max_Price_Tier > rowy.Max_Price_Tier) {
+                        return 1;
+                    }
+                    else {
+                        return -1;
+                    }
+                });
+
+                var reason = 0;
+
+                const newarr = ordered_arr.find((row, index) => {
+
+                    if (row.Price_Tier_ID === price_tiers.Price_Tier_ID) {
+
+                        if (index > 0 && ordered_arr.length > index + 1) {
+
+                            if (ordered_arr[index - 1].Max_Price_Tier < body.minprice_tier &&
+                                ordered_arr[index + 1].Min_Price_Tier > body.maxprice_tier &&
+                                ((body.maxprice_tier - body.minprice_tier) < 100) &&
+                                ((body.maxprice_tier - body.minprice_tier) >= 97)
+                            ) {
+                                console.log("reason 1");
+                                return row;
+                            }
+                            else {
+                                reason = 1;
+                                return null;
+                            }
+
+                        }
+                        else if (index > 0 && ordered_arr.length === index + 1) {
+
+                            if (ordered_arr[index - 1].Max_Price_Tier < body.minprice_tier &&
+                                ((body.maxprice_tier - body.minprice_tier) < 100) &&
+                                ((body.maxprice_tier - body.minprice_tier) >= 97)
+                            ) {
+                                console.log("reason 2");
+                                return row;
+                            }
+                            else {
+                                reason = 2;
+                                return null;
+                            }
+
+                        }
+                        else {
+                            if (ordered_arr.length > index + 1) {
+
+                                if (ordered_arr[index + 1].Min_Price_Tier > body.maxprice_tier &&
+                                    ((body.maxprice_tier - body.minprice_tier) < 100) &&
+                                    ((body.maxprice_tier - body.minprice_tier) >= 97)
+                                ) {
+                                    // console.log({ row });
+
+                                    console.log("reason 3");
+                                    return row;
+                                }
+                                else {
+                                    reason = 3;
+                                    return null;
+                                }
+
+                            }
+                            else if (ordered_arr.length === index + 1) {
+
+                                if (((body.maxprice_tier - body.minprice_tier) < 100) &&
+                                    ((body.maxprice_tier - body.minprice_tier) >= 97)
+                                ) {
+                                    // console.log({ row });
+                                    console.log("reason 4");
+                                    return row;
+                                }
+                                else {
+                                    reason = 4;
+                                    return null;
+                                }
+
+                            }
+                            else {
+                                reason = 5;
+                                return null;
+                            }
+
+                        }
+
+                    }
+                    else {
+
+                        return null;
+                    }
+
+                });
+
+                if (newarr) {
+
+                    const newLaunch = Object.assign({}, {
+                        Price_Tier_ID: price_tiers.Price_Tier_ID,
+                        Min_Price_Tier: body.minprice_tier,
+                        Max_Price_Tier: body.maxprice_tier,
+                    });
+
+                    const Editprice_tier = await EditPrice_TierById(newLaunch.Price_Tier_ID, newLaunch);
+
+
+                    if (Editprice_tier.done) {
+
+                        const Price_Tier = await getAllPrice_Tier();
+
+                        return res.status(200).json({ result: Price_Tier, done: true });
+                        // return res.status(200).json({ done: true });
+                    } else {
+                        return res.status(200).json({ result: null, done: false });
+                        // return res.status(400).json({ done: false });
+                    }
+
+                }
+                else {
+                    return res.status(400).json({ result: null, done: false, message: "Price_Tiers with the id havent been found..." });
+
+                }
+
+            }
+            else {
+
+                return res.status(400).json({ result: null, done: false, message: "Price_Tiers with the id havent been found..." });
+
+            }
+
+        }
+        else {
+            return res.status(400).json({ result: null, done: false, message: "Required fields should not be Null..." });
+        }
 
     } catch (error) {
-        return res.status(400).json({ message: "Required fields not specfied" });
+        return res.status(400).json({ result: null, done: false, message: "Required fields not specfied" });
     }
 
-}
+};
 
 async function httpDeletePrice_Tiers(req, res) {
 
@@ -255,7 +375,7 @@ async function httpDeletePrice_Tiers(req, res) {
     } catch (error) {
         return res.status(400).json({ message: "Required fields not specfied" });
     }
-}
+};
 
 module.exports = {
 
@@ -265,3 +385,5 @@ module.exports = {
     httpDeletePrice_Tiers
 
 };
+
+

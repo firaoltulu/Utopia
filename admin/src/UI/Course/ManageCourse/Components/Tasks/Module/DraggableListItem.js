@@ -41,11 +41,11 @@ const getItemStyle = (isDragging, draggableStyle, dropdrawcontent) => ({
 
 export default function DraggableListItem(props) {
 
-    const { item, index, reload, setreload, courseID } = props;
+    const { item, index, reload, setreload, courseID, selectlanguage, setCurriculum, CurriculumID } = props;
 
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-    // const [item, setitem] = React.useState(null);
+
 
     const [openAddModuleDialog, setopenAddModuleDialog] = React.useState(false);
     const [AddModuleTitle, setAddModuleTitle] = React.useState("");
@@ -57,34 +57,7 @@ export default function DraggableListItem(props) {
 
     const [snackbaropen, setsnackbaropen] = React.useState(false);
     const [errorsnackbaropen, seterrorsnackbaropen] = React.useState(false);
-    // console.log({ ModuleID });
 
-    // React.useEffect(() => {
-    //     const get = async () => {
-    //         var newobj = await GetCurriculumModuleItem(courseID, ModuleID);
-    //         if (newobj.done) {
-    //             try {
-    //                 if (newobj.fetcheddata.data.Module) {
-
-    //                     setitem(newobj.fetcheddata.data.Module);
-    //                 }
-    //                 else {
-    //                     setitem(null);
-    //                 }
-    //             }
-    //             catch (e) {
-    //                 setitem(null);
-    //             }
-
-    //         }
-    //         else {
-    //             // setalerterroopensnackbaropen(true);
-    //         }
-    //     }
-    //     get();
-    // }, []);
-
-    // console.log({ item });
 
     const HandleLectureDropDowm = (event, index) => {
 
@@ -153,7 +126,7 @@ export default function DraggableListItem(props) {
     };
 
     const handleDialogEditModuleSave = async (event) => {
-        if (AddModuleTitle !== "" && AddModuleObjective !== "" && EditModuleIndex > -1) {
+        if (AddModuleTitle !== "" && AddModuleObjective !== "" && EditModuleIndex > -1 && CurriculumID) {
 
             try {
 
@@ -161,7 +134,8 @@ export default function DraggableListItem(props) {
                     Title: AddModuleTitle,
                     Objective: AddModuleObjective,
                     CourseID: courseID,
-                    ModuleID: EditModuleIndex
+                    ModuleID: EditModuleIndex,
+                    CurriculumID: CurriculumID
                 });
 
                 console.log({ newobj });
@@ -169,7 +143,9 @@ export default function DraggableListItem(props) {
                 const response = await HttpEditCurriculumModule(newobj);
 
                 if (response.done) {
-                    setreload(!reload);
+
+                    // setreload(!reload);
+                    setCurriculum(response.Curriculum);
                     AddModuleDialogclose();
                     setsnackbaropen(true);
                 }
@@ -190,6 +166,7 @@ export default function DraggableListItem(props) {
         setsnackbaropen(false);
         seterrorsnackbaropen(false);
     };
+
 
     return (
 
@@ -258,10 +235,12 @@ export default function DraggableListItem(props) {
                                                 <DraggableListLecture
                                                     items={item.Lectures}
                                                     CourseID={courseID}
-                                                    CurriculumID={courseID}
+                                                    CurriculumID={CurriculumID}
+                                                    selectlanguage={selectlanguage}
                                                     ModuleID={item.ModuleID}
                                                     reload={reload}
                                                     setreload={setreload}
+                                                    setCurriculum={setCurriculum}
                                                 ></DraggableListLecture>
                                             </Grid>}
 

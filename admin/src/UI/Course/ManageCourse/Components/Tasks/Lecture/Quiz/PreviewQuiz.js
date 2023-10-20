@@ -47,9 +47,9 @@ export default function PreviewQuiz(props) {
 
         const getQuestion = async () => {
 
-            const ques = await GetCurriculumModuleLectureQuestionsItem(CourseID, ModuleID, LectureID);
+            const ques = await GetCurriculumModuleLectureQuestionsItem(CourseID, CurriculumID, ModuleID, LectureID);
 
-   
+
             if (ques.done) {
                 if (ques.fetcheddata.data.Questions) {
                     setquizcontent(ques.fetcheddata.data.Questions);
@@ -63,12 +63,14 @@ export default function PreviewQuiz(props) {
             else {
                 setquizcontent([]);
             }
-         
+
         };
         setquizcontent([]);
         getQuestion();
 
     }, [reload]);
+
+
 
     const HandleClick = (event, which, QuestionID) => {
         if (which === 0) {
@@ -105,7 +107,6 @@ export default function PreviewQuiz(props) {
 
     };
 
-  
 
 
     return (

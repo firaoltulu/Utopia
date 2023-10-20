@@ -1,10 +1,14 @@
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import LanguageIcon from '@mui/icons-material/Language';
 import {
     Alert,
+    Box,
+    Card,
+    CardContent,
     Dialog, DialogActions, DialogContent,
     DialogTitle, FormControl, Grid, IconButton,
-    InputAdornment, OutlinedInput, Snackbar, Typography,
+    InputAdornment, List, ListItem, ListItemButton, ListItemText, OutlinedInput, Snackbar, Typography,
     useTheme
 } from '@mui/material';
 import Button from '@mui/material/Button';
@@ -14,8 +18,13 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import * as React from 'react';
 import { useParams } from 'react-router-dom';
 
-import { AddNewCurriculumItem, GetCurriculumItem } from '../../../../Hooks/request';
-import DraggableList from '../Components/Tasks/Module/DraggableList'; //from '../Components/DraggableList';
+
+import {
+    AddNewCurriculumItem,
+    GetAllLanguages,
+    GetCurriculumItem
+} from '../../../../Hooks/request';
+import DraggableList from '../Components/Tasks/Module/DraggableList';
 
 
 export default function Curriculum() {
@@ -24,8 +33,12 @@ export default function Curriculum() {
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
+    const [Languages, setLanguages] = React.useState([]);
     const [Curriculum, setCurriculum] = React.useState([]);
+    const [FoundCurriculum, setFoundCurriculum] = React.useState([]);
 
+
+    const [languagereload, setlanguagereload] = React.useState(true);
     const [reload, setreload] = React.useState(true);
     const [openAddModuleDialog, setopenAddModuleDialog] = React.useState(false);
     const [AddModuleTitle, setAddModuleTitle] = React.useState("");
@@ -33,13 +46,58 @@ export default function Curriculum() {
     const [AddModuleTitlelength, setAddModuleTitlelength] = React.useState(80);
     const [AddModuleObjectivelength, setAddModuleObjectivelength] = React.useState(200);
 
+
+    const [openLanguageDialog, setopenLanguageDialog] = React.useState(false);
+    const [selectlanguage, setselectlanguage] = React.useState(0);
+
     const [snackbaropen, setsnackbaropen] = React.useState(false);
     const [errorsnackbaropen, seterrorsnackbaropen] = React.useState(false);
 
+    const [refresh, setrefresh] = React.useState(false);
+    const [loading, setloading] = React.useState(true);
+
     React.useEffect(() => {
         const get = async () => {
+            var newobj = await GetAllLanguages();
+
+            if (newobj.done) {
+                if (newobj.fetcheddata.data.Languages.length > 0) {
+                    var locarr = [];
+
+                    newobj.fetcheddata.data.Languages.map((row, index) => {
+
+                        var locobj = Object.assign({}, {
+                            languageID: row.LanguageID,
+                            titleEnglish: row.EnglishTitle,
+                            title: row.Title,
+                            addedDate: row.AddedDate,
+                        });
+
+
+                        locarr.push(locobj);
+                    });
+
+
+                    setLanguages(locarr);
+                    setselectlanguage(locarr[0].languageID);
+                }
+            }
+            else {
+                setrefresh(true);
+                setloading(false);
+            }
+
+        };
+        get();
+    }, [languagereload]);
+
+    React.useEffect(() => {
+        const get = async () => {
+
             var newobj = await GetCurriculumItem(params.courseID);
             if (newobj.done) {
+                setloading(false);
+                setrefresh(false);
                 try {
                     if (newobj.fetcheddata.data.Curriculums.length > 0) {
 
@@ -55,16 +113,40 @@ export default function Curriculum() {
 
             }
             else {
+                setrefresh(true);
+                setloading(false);
                 // setalerterroopensnackbaropen(true);
             }
-
+            setloading(false);
         }
         get();
 
     }, [reload]);
 
+    // React.useEffect(() => {
+    //     if (Curriculum.length > 0) {
 
-    console.log({ Curriculum });
+    //         const foundcurr = Curriculum.find((row, index) => {
+    //             if (row.CurriculumID === selectlanguage) {
+    //                 return row;
+    //             }
+    //             else {
+    //                 return null;
+    //             }
+    //         });
+
+    //         console.log({ foundcurr });
+
+    //         if (foundcurr) {
+    //             setFoundCurriculum(foundcurr);
+    //         }
+    //         else {
+    //             setFoundCurriculum([]);
+    //         }
+    //     }
+
+    // }, [selectlanguage, Curriculum]);
+
 
     const HandleAddModule = (event, index) => {
         AddModuleDialogopen();
@@ -117,12 +199,13 @@ export default function Curriculum() {
     };
 
     const handleDialogAddModule = async (event) => {
-        if (AddModuleTitle !== "" && AddModuleObjective !== "") {
+        if (AddModuleTitle !== "" && AddModuleObjective !== "" && selectlanguage !== 0) {
 
             const newobj = Object.assign({}, {
                 Title: AddModuleTitle,
                 Objective: AddModuleObjective,
-                CourseID: params.courseID
+                CourseID: params.courseID,
+                LanguageID: selectlanguage
             });
 
             try {
@@ -154,23 +237,90 @@ export default function Curriculum() {
         seterrorsnackbaropen(false);
     };
 
+    const handleLanguageDialogClose = (event) => {
+        setopenLanguageDialog(false);
+    };
+
+    const handleLanguageSelectButton = (event, languageID) => {
+        setselectlanguage(languageID);
+        handleLanguageDialogClose();
+    };
+
+    const handleRefresh = (event) => {
+        // event.preventDefault();
+        setreload(!reload);
+        setlanguagereload(!languagereload);
+    };
+
+    const Curriculumfind = () => {
+        const foundarr = Curriculum.find((row, index) => {
+            if (row.CurriculumID === selectlanguage) {
+                return row;
+            }
+            else {
+                return null;
+            }
+        });
+
+        if (foundarr) {
+            return foundarr;
+        }
+        else {
+            return null;
+        }
+
+    };
 
     return (
 
         <Grid container sx={{}}>
 
-            <Grid item xs={12}>
-                <Typography variant='h4'>Curriculum</Typography>
-            </Grid>
+            {!refresh && <React.Fragment>
 
-            <Grid item xs={12} md={12} sx={{ marginBottom: "3em", marginTop: "1em" }}>
-                <Typography variant="subtitle1">Start putting together a course by creating modules,
-                    lectures and practice activities (quizzes, coding exercises and assignments).
-                    Use your course outline to structure your content and label your modules and
-                    lectures clearly.
-                </Typography>
-            </Grid>
-            {Curriculum.length <= 0 && <Grid item xs={12}>
+                <Grid item xs={12}>
+
+                    {selectlanguage !== 0 && <Box sx={{ display: "flex", padding: "5px", border: "1px dotted", borderRadius: "1em" }}>
+                        <Box sx={{ padding: "1em" }}>
+
+                            <Typography variant='h6'>Language Selected {Languages.find((row, index) => {
+                                if (row.languageID === selectlanguage) {
+                                    return row;
+                                }
+                            }).titleEnglish}</Typography>
+
+                        </Box>
+
+                        <Box sx={{ ml: "auto", padding: "1em" }}>
+
+                            <Button variant="outlined" color="firr" onClick={(event) => { setopenLanguageDialog(true) }}><LanguageIcon></LanguageIcon></Button>
+
+                        </Box>
+
+                    </Box>}
+
+                    {selectlanguage === 0 && <Stack spacing={1}>
+
+                        <Skeleton variant="rounded" width="100%" height={60} />
+
+                    </Stack>}
+
+                </Grid>
+
+                <Grid item xs={12} sx={{ marginTop: "1em" }}>
+                    <Typography variant='h4'>Curriculum</Typography>
+                </Grid>
+
+                <Grid item xs={12} md={12} sx={{ marginBottom: "3em", marginTop: "1em" }}>
+                    <Typography variant="subtitle1">Start putting together a course by creating modules,
+                        lectures and practice activities (quizzes, coding exercises and assignments).
+                        Use your course outline to structure your content and label your modules and
+                        lectures clearly.
+                    </Typography>
+                </Grid>
+
+            </React.Fragment>}
+
+            {loading && !refresh && <Grid item xs={12}>
                 <Stack spacing={1}>
 
                     <Skeleton variant="rectangular" width="100%" height={60} />
@@ -179,12 +329,74 @@ export default function Curriculum() {
                 </Stack>
             </Grid>}
 
-            {Curriculum.length > 0 && <DraggableList Curriculum={Curriculum} reload={reload} setreload={setreload} courseID={params.courseID} setCurriculum={setCurriculum}></DraggableList>}
+            {Curriculum.length > 0 && !refresh && <DraggableList
+                Curriculum={Curriculumfind()}
+                selectlanguage={selectlanguage}
+                reload={reload}
+                setreload={setreload}
+                courseID={params.courseID}
+                setCurriculum={setCurriculum}
+            >
+            </DraggableList>}
+
+            {/* {Curriculum.length <= 0 && !refresh && <Grid container alignContent={'center'} justifyContent={"center"} sx={{ padding: "1em" }}>
+                <Typography variant='h6'>Empty</Typography>
+            </Grid>} */}
 
 
-            <Grid item xs={12} sx={{ marginTop: "1em" }}>
-                <Button size="large" color='firr' onClick={(event) => { HandleAddModule(event, 0) }} startIcon={<AddIcon />} variant="outlined">ADD Module</Button>
-            </Grid>
+            {!refresh && <Grid item xs={12} sx={{ marginTop: "1em" }}>
+                <Grid container alignContent={'center'} justifyContent={"center"}>
+                    <Button size="large" color='firr' onClick={(event) => { HandleAddModule(event, 0) }} startIcon={<AddIcon />} variant="outlined">ADD Module</Button>
+                </Grid>
+            </Grid>}
+
+            {refresh && <Grid item xs={12} sx={{ marginTop: "1em" }}>
+                <Box>
+                    <Card variant="outlined" sx={{ margin: "1em" }}>
+
+                        <CardContent >
+
+                            <Box
+                                sx={{
+                                    marginTop: 8,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Typography component="h4" variant="h4">
+                                    Connect to the internet
+                                </Typography>
+                                <Typography component="h6" variant="h6">
+                                    You're offline. Check your connection.
+                                </Typography>
+                                <Box
+                                    component="form"
+                                    // onSubmit={handleSubmit}
+                                    noValidate
+                                    sx={{ mt: 1 }}
+                                >
+
+                                    <Button
+                                        type="submit"
+                                        fullWidth
+                                        variant="contained"
+                                        color="firr"
+                                        sx={{ mt: 3, mb: 2 }}
+                                        onClick={(event) => { handleRefresh(event) }}
+                                    >
+                                        Refresh
+                                    </Button>
+
+                                </Box>
+
+                            </Box>
+
+                        </CardContent>
+
+                    </Card >
+                </Box>
+            </Grid>}
 
             <Dialog fullScreen={fullScreen} open={openAddModuleDialog} onClose={AddModuleDialogclose}>
 
@@ -243,6 +455,45 @@ export default function Curriculum() {
 
             </Dialog>
 
+            <Dialog
+                open={openLanguageDialog}
+                onClose={handleLanguageDialogClose}
+                aria-labelledby="Language-dialog"
+                sx={{
+                    '& .MuiDialogContent-root': {
+                        padding: theme.spacing(2),
+                    },
+                    '& .MuiDialogActions-root': {
+                        padding: theme.spacing(1),
+                    },
+                }}
+            >
+
+                <DialogTitle
+                    id="Language-dialog-title"
+                    onClose={handleLanguageDialogClose}
+                    sx={{ borderBottom: '1px solid' }}
+                >
+                    Choose a Language
+                </DialogTitle>
+                <DialogContent>
+                    <List>
+                        {Languages.map((row, index) => {
+
+                            return (
+                                <ListItem disablePadding key={`Language-dialog-list-listItem-${index}`}>
+                                    <ListItemButton id={`Language-dialog-list-listItem-button-${index}`} onClick={(event) => { handleLanguageSelectButton(event, row.languageID) }}>
+                                        <ListItemText primary={row.title} />
+                                    </ListItemButton>
+                                </ListItem>
+                            );
+                        })}
+
+                    </List>
+                </DialogContent>
+
+            </Dialog>
+
             <Snackbar open={errorsnackbaropen} autoHideDuration={6000} onClose={handlesnackClose}>
                 <Alert onClose={handlesnackClose} severity="error" sx={{ width: '100%' }}>
                     Error Please Insert All The necessary Information
@@ -255,7 +506,7 @@ export default function Curriculum() {
                 </Alert>
             </Snackbar>
 
-        </Grid>
+        </Grid >
 
     );
 

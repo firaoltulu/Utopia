@@ -1,5 +1,6 @@
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import {
@@ -11,7 +12,8 @@ import {
     DialogTitle,
     Divider,
     FormControl,
-    Grid, Icon, IconButton,
+    Grid,
+    IconButton,
     Paper,
     Snackbar,
     Typography,
@@ -20,17 +22,17 @@ import {
 import Card from '@mui/material/Card';
 import CardMedia from '@mui/material/CardMedia';
 import CircularProgress from '@mui/material/CircularProgress';
-import OutlinedInput from '@mui/material/OutlinedInput';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import { MuiFileInput } from 'mui-file-input';
-import * as React from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import CloseIcon from '@mui/icons-material/Close';
+import { MuiFileInput } from 'mui-file-input';
+import { Link, Outlet, useParams, useNavigate } from 'react-router-dom';
+import * as React from 'react';
+
 import {
     HttpAddCurriculumModuleLectureItemContent,
     HttpAddCurriculumModuleLectureItemContentExtraResource,
@@ -40,6 +42,9 @@ import {
 // import ReactPlayer from 'react-player';
 // import VideoPreviewcontent from './VideoPreviewcontent';
 // require("dotenv").config();
+
+
+const PREVIEW_COURSE_ADMIN_URL = "http://localhost:3078/";
 
 const PERMITED_VIDEO_FILES = ["avi", "mpg", "mpeg", "mp4", "webm", "wmv"];
 
@@ -98,8 +103,10 @@ export default function PreviewContent(props) {
     const { item, CourseID,
         CurriculumID, ModuleID,
         reload, setreload,
+        setCurriculum
     } = props;
 
+    const navigate = useNavigate();
     const playerRef = React.useRef(null);
     const API_URL = process.env.REACT_APP_API_URL;
 
@@ -237,7 +244,8 @@ export default function PreviewContent(props) {
 
             HttpAddCurriculumModuleLectureItemContent(newobj).then((response) => {
                 if (response.done) {
-                    setreload(!reload);
+                    // setreload(!reload);
+                    setCurriculum(response.Curriculum);
                     setsnackbaropen(true);
                     setEditFile(null);
                     setUploadprogress(0);
@@ -287,7 +295,8 @@ export default function PreviewContent(props) {
 
             HttpAddCurriculumModuleLectureItemContentExtraResource(newobj).then((response) => {
                 if (response.done) {
-                    setreload(!reload);
+                    // setreload(!reload);
+                    setCurriculum(response.Curriculum);
                     setExtra_Resourcesnackbaropen(true);
                     setresourceFile(null);
                     setUploadprogress(0);
@@ -380,7 +389,7 @@ export default function PreviewContent(props) {
             const response = await HttpDeleteCurriculumModuleLectureContentExtraResource(newobj);
 
             if (response.done) {
-                setreload(!reload);
+                // setreload(!reload);
                 setDelete_Extra_Resourcesnackbaropen(true);
                 setExtra_Resource_ID(0);
 
@@ -393,6 +402,11 @@ export default function PreviewContent(props) {
         else {
 
         }
+    };
+
+    const handlepreviewclick = async (event, CourseID, CurriculumID, ModuleID, LectureID) => {
+
+        // navigate("/Class_Room");
     };
 
     return (
@@ -446,9 +460,12 @@ export default function PreviewContent(props) {
                         <Grid item xs={12} md={6}>
                             <Button variant="outlined" fullWidth color='firr' onClick={(event) => { HandleClick(event, 0) }} startIcon={<EditIcon></EditIcon>} >Edit Content</Button>
                         </Grid>
+                        {/* ${item.LectureID}/ */}
+
                         <Grid item xs={12} md={6}>
-                            <Button variant="contained" fullWidth color='firr' >Preview</Button>
+                            <Button component={Link} to={`${PREVIEW_COURSE_ADMIN_URL}Class_Room/${CourseID}/Curriculum/${CurriculumID}/Module/${ModuleID}/Lecture/${item.LectureID}`} onClick={(event) => { handlepreviewclick(event, CourseID, CurriculumID, ModuleID, item.LectureID) }} variant="contained" fullWidth color='firr' target="_blank" >Preview</Button>
                         </Grid>
+
                     </Grid>
 
                 </Grid>}
